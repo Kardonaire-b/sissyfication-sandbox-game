@@ -188,23 +188,25 @@ export function renderChoices(actionsArray) {
         b.className = 'choice-button';
 
         let baseText = typeof action.text === 'function' ? action.text() : action.text;
-        let currentText = baseText;
+        let currentText = '';
         let icon = '';
 
-        // Иконки на основе ID действия или содержания текста
+        // Иконки на основе ID действия
         switch (action.id) {
             case 'work': icon = '💼 '; break;
             case 't_blocker': icon = '💊 '; break;
             case 't_pill': icon = '♂️ '; break;
             case 'e_pill': icon = '♀️ '; break;
             case 'read_book': icon = state.hormonesUnlocked ? '📖 ' : '📚 '; break;
-            case 'browse_internet': icon = '🌐 '; break; // Уже есть в тексте, но для консистентности
+            case 'browse_internet': icon = '🌐 '; break; // Теперь это основной источник иконки
             case 'rest': icon = '😴 '; break;
-            default: // Если ID нет или не совпал, можно попробовать по тексту
-                if (baseText.includes("Работать")) icon = '💼 ';
-                else if (baseText.includes("Искать информацию")) icon = '🌐 '; // Если id не используется
-                break;
+            // default: можно оставить пустым, если мы уверены, что все actions имеют ID
+            // и соответствующий case. Если нет, можно добавить резервную логику
+            // или выводить предупреждение о неизвестном action.id
         }
+
+        currentText = icon + baseText; // Простое присвоение иконки и текста
+
         // Убедимся, что у "Искать информацию" иконка есть, если она не в action.text
         if (action.id === 'browse_internet' && !baseText.startsWith('🌐')) {
             currentText = '🌐 ' + baseText;
@@ -219,13 +221,13 @@ export function renderChoices(actionsArray) {
             currentText += ` (Нужно: ${action.cost}${C.CURRENCY_SYMBOL})`;
         } else if (action.cost > 0) {
             currentText += ` (–${action.cost}${C.CURRENCY_SYMBOL})`;
-        } else if (action.id === 'work') { // Используем ID
+        } else if (action.id === 'work') {
             currentText += ` (+${C.WORK_INCOME}${C.CURRENCY_SYMBOL})`;
         }
 
         if (action.condition && !action.condition()) {
             isDisabled = true;
-            if (action.id === 't_blocker' && state.t_blocker_active_days > 0) { // Используем ID
+            if (action.id === 't_blocker' && state.t_blocker_active_days > 0) {
                 currentText = `${icon}Блокатор Т активен (${state.t_blocker_active_days} дн.)`;
             }
         }
@@ -235,8 +237,6 @@ export function renderChoices(actionsArray) {
 
         b.addEventListener('click', () => {
             action.handler();
-            // Вызов updateStats() происходит внутри nextDay() или других функций,
-            // которые вызываются в action.handler(). Нет необходимости вызывать его здесь снова.
         });
         el.choices.appendChild(b);
     });

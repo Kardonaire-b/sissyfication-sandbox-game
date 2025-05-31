@@ -60,10 +60,7 @@ export const actions = [
             if (!state.hormonesUnlocked) {
                 state.discoveryPoints = Math.min(C.MAX_DISCOVERY_POINTS, state.discoveryPoints + C.BOOK_DISCOVERY_GAIN);
                 log(`Чтение помогает отвлечься и узнать что-то новое о себе. (Очки Открытий +${C.BOOK_DISCOVERY_GAIN})`, 'discovery');
-                if (checkHormoneUnlock()) { // Если произошла разблокировка, нужно обновить UI полностью
-                    // nextDay() ниже вызовет updateStats, который перерисует кнопки.
-                    // Дополнительно ничего не требуется здесь.
-                }
+                checkHormoneUnlock(); // <-- Упрощенный вызов
             } else {
                 state.progress = Math.min(C.MAX_PROGRESS, state.progress + C.BOOK_PROGRESS_GAIN);
                 log(`📖 Знания о пути сисси углубляются. Прогресс +${C.BOOK_PROGRESS_GAIN}%.`, 'progress-change');
@@ -71,10 +68,10 @@ export const actions = [
             nextDay();
         }
     },
-    {
+     {
         id: 'browse_internet',
-        text: '🌐 Искать информацию в интернете', cost: 0, tab: 'other',
-        // condition: () => !state.hormonesUnlocked, // Можно раскомментировать, если нужно скрыть после разблокировки
+        text: 'Искать информацию в интернете', // Иконка уже удалена по пункту 1
+        cost: 0, tab: 'other',
         handler: () => {
             state.discoveryPoints = Math.min(C.MAX_DISCOVERY_POINTS, state.discoveryPoints + C.INTERNET_DISCOVERY_GAIN);
             let msg = `Ты провел(а) время в сети, исследуя разные темы. (Очки Открытий +${C.INTERNET_DISCOVERY_GAIN})`;
@@ -82,9 +79,7 @@ export const actions = [
                 msg += " Некоторые обсуждения о гендерной идентичности и самовыражении показались особенно интересными...";
             }
             log(msg, 'discovery');
-            if (checkHormoneUnlock()) {
-                // Аналогично "Читать книгу"
-            }
+            checkHormoneUnlock(); // <-- Упрощенный вызов
             nextDay();
         }
     },
