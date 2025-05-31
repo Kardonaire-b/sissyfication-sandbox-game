@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Игра-песочница: Сиссификация (v2.3 - Gradual Discovery Modular)</title>
+  <style>
+    /* Стили остаются те же, что и в v2.2 */
+    body { background: linear-gradient(135deg,#2a2a2a,#1a1a1a); color:#eee; font-family:'Segoe UI',sans-serif; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; min-height:100vh; margin:0; padding:20px; box-sizing: border-box; }
+    #game-container { max-width:800px; width:100%; background:#2e2e2e; padding:20px; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.6); }
+    #stats { display:grid; grid-template-columns:repeat(auto-fit, minmax(120px, 1fr)); gap:10px; margin-bottom:20px; }
+    .stat { background:#3a3a3a; padding:12px; border-radius:8px; text-align:center; box-shadow:inset 0 1px 3px rgba(0,0,0,0.5); }
+    .stat-title { 
+        font-size:0.85rem; 
+        color:#aaa; 
+        margin-bottom:4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .stat-title .icon {
+        margin-right: 5px;
+        font-size: 1em;
+    }
+    .stat-value { font-size:1.1rem; font-weight:bold; }
+    .bar-wrap { height:8px; background:#444; border-radius:4px; overflow:hidden; margin-top:6px; }
+    .bar { height:100%; width:0; transition:width .4s; }
+    #test-bar { background: #69a2ff; }
+    #est-bar { background: #ff69b4; }
+    #progress-bar { background: #69ff8e; }
+
+    #tabs { display:flex; margin-bottom:20px; }
+    .tab-button { flex:1; padding:10px; background:#3a3a3a; border:none; color:#eee; cursor:pointer; font-size:1rem; border-bottom:2px solid transparent; transition:background .3s, opacity .3s, display .3s; margin: 0 2px; border-radius: 4px 4px 0 0;}
+    .tab-button:first-child { margin-left: 0; }
+    .tab-button:last-child { margin-right: 0; }
+    .tab-button.selected { background:#555; border-bottom-color:#ff69b4; }
+    .tab-button.hidden-tab { /* Для скрытия таба, если используется display: none для .style.display */
+        /* opacity: 0.5; */
+        /* pointer-events: none; */
+        /* display: none; /* Если основной метод скрытия - через JS style.display = 'none' */
+    }
+    
+    #body-desc-container { background:#3a3a3a; padding:20px; border-radius:8px; margin-bottom:20px; box-shadow:inset 0 1px 3px rgba(0,0,0,0.5); }
+    #body-desc { white-space:pre-wrap; line-height:1.7; font-style:italic; font-size:0.95rem; }
+    
+    #action-log-output { 
+        background:#333; 
+        padding:12px;
+        border-radius:6px; 
+        margin-bottom:15px; 
+        text-align:center; 
+        font-style:italic; 
+        min-height: 1.3em;
+        color: #ddd;
+        transition: background-color 0.3s, color 0.3s;
+    }
+    #action-log-output.log-default { color: #ddd; }
+    #action-log-output.log-money-gain { color: #a1ffb6; }
+    #action-log-output.log-money-loss { color: #ffacac; }
+    #action-log-output.log-hormone-change { color: #f9c0ff; }
+    #action-log-output.log-progress-change { color: #fff3a1; }
+    #action-log-output.log-discovery { color: #a1e3ff; /* Голубой для открытий */ }
+    #action-log-output.log-important { font-weight: bold; color: #ffc869; }
+
+    #choices { background:#3a3a3a; padding:15px; border-radius:8px; margin-bottom:20px; box-shadow:inset 0 1px 3px rgba(0,0,0,0.5); }
+    .choice-button { display:block; width:100%; padding:12px; margin:8px 0; background:#555; border:none; border-radius:6px; color:#eee; cursor:pointer; font-size:1rem; transition:background .3s,transform .1s; box-sizing: border-box; }
+    .choice-button.disabled, .choice-button:disabled { background:#444; cursor:not-allowed; opacity:.7; }
+    .choice-button:hover:enabled { background:#666; transform:translateY(-2px); }
+  </style>
+</head>
+<body>
+  <div id="game-container">
+    <div id="stats">
+      <div class="stat"><div class="stat-title"><span class="icon">🗓️</span>День</div><div class="stat-value" id="day">0</div></div> <!-- Начальное значение дня 0, main.js его обновит -->
+      <div class="stat"><div class="stat-title"><span class="icon">💰</span>Деньги</div><div class="stat-value" id="money">50₽</div></div>
+      <div class="stat"><div class="stat-title"><span class="icon">♂️</span>T</div><div class="stat-value" id="testosterone">50</div><div class="bar-wrap"><div id="test-bar" class="bar"></div></div></div>
+      <div class="stat"><div class="stat-title"><span class="icon">♀️</span>E</div><div class="stat-value" id="estrogen">10</div><div class="bar-wrap"><div id="est-bar" class="bar"></div></div></div>
+      <div class="stat">
+        <div class="stat-title">
+            <span class="icon" id="progress-icon">💡</span><span id="progress-title">Открытия</span> <!-- Начальные значения -->
+        </div>
+        <div class="stat-value" id="progress">0</div>
+        <div class="bar-wrap"><div id="progress-bar" class="bar"></div></div>
+      </div>
+    </div>
+    <div id="tabs">
+      <button class="tab-button selected" data-tab="income">Доход</button>
+      <button class="tab-button" data-tab="hormone" style="display: none;">Гормоны</button> <!-- Изначально скрыт -->
+      <button class="tab-button" data-tab="other">Разное</button>
+    </div>
+    <div id="body-desc-container">
+        <!-- Начальное описание тела может быть пустым или базовым, т.к. main.js вызовет updateBody -->
+        <div id="body-desc">Загрузка...</div> 
+    </div>
+    <div id="action-log-output" class="log-default">Загрузка игры...</div> <!-- Начальное сообщение лога -->
+    <div id="choices">
+        <!-- Кнопки будут отрисованы через JavaScript -->
+    </div>
+  </div>
+  <script type="module" src="main.js"></script>
+</body>
+</html>
