@@ -5,6 +5,8 @@ import * as C from './config.js';
 import { CLOTHING_ITEMS, CLOTHING_SLOTS } from './wardrobeConfig.js';
 import { equipItem, unequipItem } from './wardrobeLogic.js';
 
+let fullBodyDescriptionForModalStore = ""; // Переменная для хранения полного описания
+
 
 export function log(msg, type = 'default') {
     el.actionLogOutput.textContent = msg;
@@ -151,133 +153,199 @@ export function updateBody() {
     const E_is_dominant = E > T + 5;
     const hormonalBalanceFactor = Math.max(0, Math.min(100, (E - T + C.MAX_HORMONE_LEVEL) / 2));
 
-    let lines = [];
+    let allBodyLines = []; // Для полного описания в модальное окно
+    state.recentBodyChanges = []; // Очищаем перед заполнением
+
     if (!state.hormonesUnlocked) {
-        lines.push("Ты продолжаешь исследовать себя и окружающий мир. Какие-то смутные желания и мысли иногда посещают тебя, но пока неясно, к чему они ведут.");
-        lines.push(`Твои текущие ощущения: ${state.discoveryPoints > 15 ? "Любопытство растет, ты находишь все больше интересной информации." : "Обычный день, обычные мысли."}`);
+        let preUnlockLines = [];
+        preUnlockLines.push("Ты продолжаешь исследовать себя и окружающий мир. Какие-то смутные желания и мысли иногда посещают тебя, но пока неясно, к чему они ведут.");
+        preUnlockLines.push(`Твои текущие ощущения: ${state.discoveryPoints > 15 ? "Любопытство растет, ты находишь все больше интересной информации." : "Обычный день, обычные мысли."}`);
         if (state.discoveryPoints > 0 && state.discoveryPoints < C.DISCOVERY_POINTS_TO_UNLOCK_HORMONES) {
-             lines.push(`Очки открытий: ${state.discoveryPoints}/${C.DISCOVERY_POINTS_TO_UNLOCK_HORMONES}`);
-        } else if (state.discoveryPoints >= C.DISCOVERY_POINTS_TO_UNLOCK_HORMONES && !state.hormonesUnlocked) { // Добавил !state.hormonesUnlocked, чтобы не показывать после разблокировки
-             lines.push(`Кажется, ты на пороге важного открытия! (Очки открытий: ${state.discoveryPoints})`);
+            preUnlockLines.push(`Очки открытий: ${state.discoveryPoints}/${C.DISCOVERY_POINTS_TO_UNLOCK_HORMONES}`);
+        } else if (state.discoveryPoints >= C.DISCOVERY_POINTS_TO_UNLOCK_HORMONES && !state.hormonesUnlocked) {
+            preUnlockLines.push(`Кажется, ты на пороге важного открытия! (Очки открытий: ${state.discoveryPoints})`);
         }
-    } else {
-        // Голос
-        let voicePitch = C.VOICE_PITCH_BASE_HZ - (T - E) * C.VOICE_PITCH_HORMONE_FACTOR;
-        voicePitch = Math.max(80, Math.min(300, voicePitch));
-        let voiceDesc = `🎤 Голос: ${voicePitch.toFixed(0)} Гц. `;
-        if (E - T > C.VOICE_E_DOMINANT_THRESHOLD_FOR_CHANGE_2 && P > C.VOICE_P_THRESHOLD_FOR_CHANGE_2) voiceDesc += "Звучит заметно выше, нежнее, почти неузнаваемо.";
-        else if (E - T > C.VOICE_E_DOMINANT_THRESHOLD_FOR_CHANGE_1) voiceDesc += "Становится мягче и выше, теряет грубые нотки.";
-        else if (T - E > C.VOICE_T_DOMINANT_THRESHOLD) voiceDesc += "Низкий, с бархатными мужскими обертонами.";
-        else voiceDesc += "Тембр на грани, андрогинный, интригующий.";
-        lines.push(voiceDesc);
-        // Кожа
-        let skinDesc = "💧 Кожа: ";
-        if (E_is_dominant && E > C.SKIN_E_DOMINANT_THRESHOLD_FOR_SOFTNESS) {
-            skinDesc += P > C.SKIN_P_THRESHOLD_SOFT_2 ? "Невероятно гладкая, шелковистая на ощупь, поры почти невидимы. Лёгкий румянец." :
+        // Для неразблокированного состояния, все строки идут в основное описание
+        el.bodyDesc.textContent = preUnlockLines.join('\n\n');
+        fullBodyDescriptionForModalStore = preUnlockLines.join('\n\n'); // И в модалку тоже самое на всякий
+        return; // Выходим, дальше обработка для разблокированных гормонов
+    }
+
+    // --- Генерация описаний для каждого параметра ---
+    // Голос
+    let voicePitch = C.VOICE_PITCH_BASE_HZ - (T - E) * C.VOICE_PITCH_HORMONE_FACTOR;
+    voicePitch = Math.max(80, Math.min(300, voicePitch));
+    let voiceDescText = `🎤 Голос: ${voicePitch.toFixed(0)} Гц. `;
+    if (E - T > C.VOICE_E_DOMINANT_THRESHOLD_FOR_CHANGE_2 && P > C.VOICE_P_THRESHOLD_FOR_CHANGE_2) voiceDescText += "Звучит заметно выше, нежнее, почти неузнаваемо.";
+    else if (E - T > C.VOICE_E_DOMINANT_THRESHOLD_FOR_CHANGE_1) voiceDescText += "Становится мягче и выше, теряет грубые нотки.";
+    else if (T - E > C.VOICE_T_DOMINANT_THRESHOLD) voiceDescText += "Низкий, с бархатными мужскими обертонами.";
+    else voiceDescText += "Тембр на грани, андрогинный, интригующий.";
+    allBodyLines.push(generateBodyParameterDescription('voice', voiceDescText, state.previousBodyParams.voice, state.recentBodyChanges));
+
+    // Кожа
+    let skinDescText = "💧 Кожа: ";
+    // ... (вся логика для skinDescText, как было раньше) ...
+     if (E_is_dominant && E > C.SKIN_E_DOMINANT_THRESHOLD_FOR_SOFTNESS) {
+            skinDescText += P > C.SKIN_P_THRESHOLD_SOFT_2 ? "Невероятно гладкая, шелковистая на ощупь, поры почти невидимы. Лёгкий румянец." :
                 P > C.SKIN_P_THRESHOLD_SOFT_1 ? "Становится ощутимо мягче, нежнее, уходит жирный блеск." :
                 "Появляется мягкость, менее жирная.";
-            if (E > C.SKIN_E_THRESHOLD_FOR_THINNING && P > C.SKIN_P_THRESHOLD_FOR_THINNING) skinDesc += " Кажется тоньше, венки на запястьях и груди могут быть видны отчетливее.";
+            if (E > C.SKIN_E_THRESHOLD_FOR_THINNING && P > C.SKIN_P_THRESHOLD_FOR_THINNING) skinDescText += " Кажется тоньше, венки на запястьях и груди могут быть видны отчетливее.";
         } else if (T_is_dominant && T > C.SKIN_T_DOMINANT_THRESHOLD_FOR_ROUGHNESS) {
-            skinDesc += "Плотная, возможно, более склонная к жирности и акне. Поры заметны.";
+            skinDescText += "Плотная, возможно, более склонная к жирности и акне. Поры заметны.";
         } else {
-            skinDesc += "Обычная, но ты начинаешь замечать тонкие изменения в её текстуре.";
+            skinDescText += "Обычная, но ты начинаешь замечать тонкие изменения в её текстуре.";
         }
-        lines.push(skinDesc);
-        // Волосы на теле/лице
-        let bodyHairDesc = "🌿 Волосы на теле/лице: ";
-        if (E_is_dominant && E > C.BODYHAIR_E_DOMINANT_THRESHOLD_FOR_REDUCTION && P > C.BODYHAIR_P_THRESHOLD_FOR_REDUCTION) {
-            bodyHairDesc += "Рост волос на теле замедлился, они стали тоньше и светлее. ";
-            if (T < C.BODYHAIR_T_THRESHOLD_FOR_FACIAL_PUBESCENCE && P > C.BODYHAIR_P_THRESHOLD_FOR_FACIAL_PUBESCENCE) bodyHairDesc += "Щетина на лице почти не растет, или стала пушковой.";
-            else if (T < C.BODYHAIR_T_THRESHOLD_FOR_FACIAL_SLOWDOWN) bodyHairDesc += "Рост щетины замедлен, бритьё требуется реже.";
+    allBodyLines.push(generateBodyParameterDescription('skin', skinDescText, state.previousBodyParams.skin, state.recentBodyChanges));
+
+    // Волосы на теле/лице
+    let bodyHairDescText = "🌿 Волосы на теле/лице: ";
+    // ... (вся логика для bodyHairDescText) ...
+    if (E_is_dominant && E > C.BODYHAIR_E_DOMINANT_THRESHOLD_FOR_REDUCTION && P > C.BODYHAIR_P_THRESHOLD_FOR_REDUCTION) {
+            bodyHairDescText += "Рост волос на теле замедлился, они стали тоньше и светлее. ";
+            if (T < C.BODYHAIR_T_THRESHOLD_FOR_FACIAL_PUBESCENCE && P > C.BODYHAIR_P_THRESHOLD_FOR_FACIAL_PUBESCENCE) bodyHairDescText += "Щетина на лице почти не растет, или стала пушковой.";
+            else if (T < C.BODYHAIR_T_THRESHOLD_FOR_FACIAL_SLOWDOWN) bodyHairDescText += "Рост щетины замедлен, бритьё требуется реже.";
         } else if (T_is_dominant && T > C.BODYHAIR_T_DOMINANT_THRESHOLD_FOR_THICK) {
-            bodyHairDesc += "Активный рост волос на теле и лице, густая щетина.";
+            bodyHairDescText += "Активный рост волос на теле и лице, густая щетина.";
         } else {
-            bodyHairDesc += "Без особых изменений.";
+            bodyHairDescText += "Без особых изменений.";
         }
-        lines.push(bodyHairDesc);
-        // Грудь
-        let breastDesc = "🍈 Грудь: ";
+    allBodyLines.push(generateBodyParameterDescription('bodyHair', bodyHairDescText, state.previousBodyParams.bodyHair, state.recentBodyChanges));
+
+    // Грудь
+    let breastDescText = "🍈 Грудь: ";
+    // ... (вся логика для breastDescText) ...
         let breastDevStageRaw = 0;
         if (E > C.BREAST_E_THRESHOLD_START_BUDDING && P > C.BREAST_P_THRESHOLD_START_BUDDING) {
             breastDevStageRaw = 1 + (Math.max(0, E - C.BREAST_E_THRESHOLD_START_BUDDING) / C.BREAST_E_UNITS_PER_STAGE) *
                 (C.BREAST_PROGRESS_FACTOR_BASE + P / C.BREAST_PROGRESS_FACTOR_SCALE);
         }
         const currentBreastDevStage = Math.min(C.BREAST_MAX_DEV_STAGE, Math.floor(breastDevStageRaw));
-        if (currentBreastDevStage === 0) breastDesc += "Абсолютно плоская.";
-        else if (currentBreastDevStage === 1) breastDesc += `Появились болезненные уплотнения под сосками (E:${E.toFixed(0)}, P:${P}%).`;
-        else if (currentBreastDevStage === 2) breastDesc += `Небольшая, но оформленная (размер A). Соски увеличились. (E:${E.toFixed(0)}, P:${P}%).`;
-        else if (currentBreastDevStage === 3) breastDesc += `Среднего размера, упругая (ближе к B). (E:${E.toFixed(0)}, P:${P}%).`;
-        else breastDesc += `Пышная, мягкая, соблазнительная (размер C+!). (E:${E.toFixed(0)}, P:${P}%).`;
-        lines.push(breastDesc);
-        // Фигура и Жир
-        let figureDesc = "🍑 Фигура: ";
+        if (currentBreastDevStage === 0) breastDescText += "Абсолютно плоская.";
+        else if (currentBreastDevStage === 1) breastDescText += `Появились болезненные уплотнения под сосками (E:${E.toFixed(0)}, P:${P}%).`;
+        else if (currentBreastDevStage === 2) breastDescText += `Небольшая, но оформленная (размер A). Соски увеличились. (E:${E.toFixed(0)}, P:${P}%).`;
+        else if (currentBreastDevStage === 3) breastDescText += `Среднего размера, упругая (ближе к B). (E:${E.toFixed(0)}, P:${P}%).`;
+        else breastDescText += `Пышная, мягкая, соблазнительная (размер C+!). (E:${E.toFixed(0)}, P:${P}%).`;
+    allBodyLines.push(generateBodyParameterDescription('breast', breastDescText, state.previousBodyParams.breast, state.recentBodyChanges));
+
+    // Фигура и Жир
+    let figureDescText = "🍑 Фигура: ";
+    // ... (вся логика для figureDescText) ...
         const whr_change_potential = C.FIGURE_WHR_BASE - C.FIGURE_WHR_TARGET_FEMALE;
         let whr_progress_to_female_target = 0;
         if (E_is_dominant && E > C.FIGURE_E_DOMINANT_THRESHOLD_FOR_WHR_CHANGE) {
             whr_progress_to_female_target = Math.min(1, (E - C.FIGURE_E_DOMINANT_THRESHOLD_FOR_WHR_CHANGE) / C.FIGURE_E_UNITS_FOR_WHR_PROGRESS) * (P / C.MAX_PROGRESS);
         }
         const current_whr = (C.FIGURE_WHR_BASE - whr_change_potential * whr_progress_to_female_target).toFixed(2);
-        figureDesc += `Талия/бедра: ${current_whr}. `;
+        figureDescText += `Талия/бедра: ${current_whr}. `;
         if (E_is_dominant && E > C.FIGURE_E_DOMINANT_THRESHOLD_FOR_FAT_REDISTRIBUTION && P > C.FIGURE_P_THRESHOLD_FOR_FAT_REDISTRIBUTION) {
-            figureDesc += "Жир перераспределяется на бедра и ягодицы. Талия изящнее.";
+            figureDescText += "Жир перераспределяется на бедра и ягодицы. Талия изящнее.";
         } else if (T_is_dominant && T > C.FIGURE_T_DOMINANT_THRESHOLD_FOR_MALE_FAT) {
-            figureDesc += "Жир в области живота, фигура маскулинная.";
+            figureDescText += "Жир в области живота, фигура маскулинная.";
         } else if (P > C.FIGURE_P_THRESHOLD_FOR_SUBTLE_SOFTENING) {
-            figureDesc += "Контуры тела неуловимо смягчаются.";
+            figureDescText += "Контуры тела неуловимо смягчаются.";
         }
-        lines.push(figureDesc);
-        // Мышцы
-        let muscleDesc = "💪 Мышцы: ";
-        if (T > C.MUSCLE_T_HIGH_THRESHOLD_FOR_BULK && !E_is_dominant) muscleDesc += P < C.MUSCLE_P_THRESHOLD_FOR_BULK_SOFTENING ? "Развитые, рельефные." : "Крепкие, но теряют твердость.";
-        else if (T > C.MUSCLE_T_MID_THRESHOLD_FOR_TONE && !E_is_dominant) muscleDesc += "Умеренно развиты, в тонусе.";
-        else if (E_is_dominant && E > C.MUSCLE_E_DOMINANT_THRESHOLD_FOR_LOSS) muscleDesc += `Уменьшились, стали мягче. Сила снизилась (T:${T.toFixed(0)}).`;
-        else muscleDesc += `Слабые, без рельефа. (T:${T.toFixed(0)})`;
-        lines.push(muscleDesc);
-        // Гениталии
-        let penisShrinkageFactor = ((E - C.BASE_E) * C.GENITAL_PENIS_E_SHRINK_FACTOR + Math.max(0, 50 - T) * C.GENITAL_PENIS_LOW_T_SHRINK_FACTOR) *
+    allBodyLines.push(generateBodyParameterDescription('figure', figureDescText, state.previousBodyParams.figure, state.recentBodyChanges));
+
+    // Мышцы
+    let muscleDescText = "💪 Мышцы: ";
+    // ... (вся логика для muscleDescText) ...
+        if (T > C.MUSCLE_T_HIGH_THRESHOLD_FOR_BULK && !E_is_dominant) muscleDescText += P < C.MUSCLE_P_THRESHOLD_FOR_BULK_SOFTENING ? "Развитые, рельефные." : "Крепкие, но теряют твердость.";
+        else if (T > C.MUSCLE_T_MID_THRESHOLD_FOR_TONE && !E_is_dominant) muscleDescText += "Умеренно развиты, в тонусе.";
+        else if (E_is_dominant && E > C.MUSCLE_E_DOMINANT_THRESHOLD_FOR_LOSS) muscleDescText += `Уменьшились, стали мягче. Сила снизилась (T:${T.toFixed(0)}).`;
+        else muscleDescText += `Слабые, без рельефа. (T:${T.toFixed(0)})`;
+    allBodyLines.push(generateBodyParameterDescription('muscle', muscleDescText, state.previousBodyParams.muscle, state.recentBodyChanges));
+    
+    // Гениталии (Пенис/Клитор)
+    let penisShrinkageFactor = ((E - C.BASE_E) * C.GENITAL_PENIS_E_SHRINK_FACTOR + Math.max(0, 50 - T) * C.GENITAL_PENIS_LOW_T_SHRINK_FACTOR) *
             (C.GENITAL_PROGRESS_ACCELERATOR_BASE + P / C.GENITAL_PROGRESS_ACCELERATOR_SCALE);
-        penisShrinkageFactor = Math.max(0, penisShrinkageFactor);
-        const penisLengthCm = Math.max(C.GENITAL_PENIS_MIN_CM, C.GENITAL_PENIS_BASE_CM - penisShrinkageFactor).toFixed(1);
-        let erectionQuality = 'нормальная';
-        if (T < C.GENITAL_ERECTION_T_LOW_THRESHOLD_ALMOST_NONE && E_is_dominant && P > C.GENITAL_ERECTION_P_LOW_THRESHOLD_ALMOST_NONE) erectionQuality = 'почти отсутствует';
-        else if (T < C.GENITAL_ERECTION_T_LOW_THRESHOLD_VERY_WEAK || (E_is_dominant && E > C.GENITAL_ERECTION_E_HIGH_THRESHOLD_VERY_WEAK)) erectionQuality = 'очень слабая';
-        else if (T < C.GENITAL_ERECTION_T_LOW_THRESHOLD_WEAK || (E_is_dominant && E > C.GENITAL_ERECTION_E_HIGH_THRESHOLD_WEAK)) erectionQuality = 'снижена, менее твердая';
-        let penisDesc = `🍆 Клити/Пенис: ${penisLengthCm} см. `;
-        if (P > C.GENITAL_P_THRESHOLD_FOR_CLIT_TEXT && E_is_dominant && parseFloat(penisLengthCm) < C.GENITAL_PENIS_CLIT_TRANSITION_CM) {
-            penisDesc = `🎀 Клитор: ${penisLengthCm} см. Стал очень маленьким и чувствительным. `;
-        }
-        penisDesc += `Эрекция: ${erectionQuality}.`;
-        lines.push(penisDesc);
-        // Яички
-        let testicleShrinkageFactor = ((E - C.BASE_E) * C.GENITAL_TESTICLES_E_SHRINK_FACTOR + Math.max(0, 40 - T) * C.GENITAL_TESTICLES_LOW_T_SHRINK_FACTOR) *
-            (C.GENITAL_PROGRESS_ACCELERATOR_BASE + P / C.GENITAL_PROGRESS_ACCELERATOR_SCALE);
-        testicleShrinkageFactor = Math.max(0, testicleShrinkageFactor);
-        const testicleVolume = Math.max(C.GENITAL_TESTICLES_MIN_VOL_ML, C.GENITAL_TESTICLES_BASE_VOL_ML - testicleShrinkageFactor).toFixed(1);
-        const testicleTexture = (E_is_dominant && E > C.GENITAL_TESTICLES_E_THRESHOLD_SOFT_TEXTURE && P > C.GENITAL_TESTICLES_P_THRESHOLD_SOFT_TEXTURE) ? 'мягкие, уменьшившиеся' : 'упругие';
-        let testiclesDesc = `🥚 Яички: объём ~${testicleVolume} мл, ${testicleTexture}. `;
-        if (E_is_dominant && E > C.GENITAL_TESTICLES_E_THRESHOLD_ATROPHY && P > C.GENITAL_TESTICLES_P_THRESHOLD_ATROPHY && parseFloat(testicleVolume) < C.GENITAL_TESTICLES_ATROPHY_VOL_ML) {
-            testiclesDesc += "Почти атрофировались.";
-        }
-        lines.push(testiclesDesc);
-        // Ощущения и Общее
-        let feelingDesc = "✨ Ощущения: ";
-        if (P > C.FEELING_P_THRESHOLD_PERFECT_SISSY && E_is_dominant && E > C.FEELING_E_THRESHOLD_PERFECT_SISSY) feelingDesc += "Воплощение женственности. Гармония.";
-        else if (P > C.FEELING_P_THRESHOLD_REAL_SISSY && E_is_dominant) feelingDesc += "Чувствуешь себя настоящей сисси. Уверенность растет.";
-        else if (P > C.FEELING_P_THRESHOLD_TRANSFORMATION_FULL_SWING && (E_is_dominant || hormonalBalanceFactor > C.FEELING_HORMONAL_BALANCE_THRESHOLD_TRANSFORMATION_FULL_SWING)) feelingDesc += "Трансформация идет полным ходом! Прилив сисси-энергии.";
-        else if (P > C.FEELING_P_THRESHOLD_FIRST_WHISPERS) feelingDesc += "Первые шепоты изменений. Тело меняется, это волнует.";
-        else feelingDesc += "Самое начало пути. Ветерок перемен едва коснулся.";
-        lines.push(feelingDesc);
-        // Наряд
-        lines.push(getCurrentOutfitDescription());
+    penisShrinkageFactor = Math.max(0, penisShrinkageFactor);
+    const penisLengthCm = Math.max(C.GENITAL_PENIS_MIN_CM, C.GENITAL_PENIS_BASE_CM - penisShrinkageFactor).toFixed(1);
+    let erectionQuality = 'нормальная';
+    if (T < C.GENITAL_ERECTION_T_LOW_THRESHOLD_ALMOST_NONE && E_is_dominant && P > C.GENITAL_ERECTION_P_LOW_THRESHOLD_ALMOST_NONE) erectionQuality = 'почти отсутствует';
+    else if (T < C.GENITAL_ERECTION_T_LOW_THRESHOLD_VERY_WEAK || (E_is_dominant && E > C.GENITAL_ERECTION_E_HIGH_THRESHOLD_VERY_WEAK)) erectionQuality = 'очень слабая';
+    else if (T < C.GENITAL_ERECTION_T_LOW_THRESHOLD_WEAK || (E_is_dominant && E > C.GENITAL_ERECTION_E_HIGH_THRESHOLD_WEAK)) erectionQuality = 'снижена, менее твердая';
+    let penisDescText = `🍆 Пенис: ${penisLengthCm} см. `;
+    if (P > C.GENITAL_P_THRESHOLD_FOR_CLIT_TEXT && E_is_dominant && parseFloat(penisLengthCm) < C.GENITAL_PENIS_CLIT_TRANSITION_CM) {
+        penisDescText = `🎀 Клитор: ${penisLengthCm} см. Стал очень маленьким и чувствительным. `;
     }
-    el.bodyDesc.textContent = lines.join('\n\n');
+    penisDescText += `Эрекция: ${erectionQuality}.`;
+    allBodyLines.push(generateBodyParameterDescription('genitalsPenis', penisDescText, state.previousBodyParams.genitalsPenis, state.recentBodyChanges));
+
+    // Гениталии (Яички)
+    let testicleShrinkageFactor = ((E - C.BASE_E) * C.GENITAL_TESTICLES_E_SHRINK_FACTOR + Math.max(0, 40 - T) * C.GENITAL_TESTICLES_LOW_T_SHRINK_FACTOR) *
+            (C.GENITAL_PROGRESS_ACCELERATOR_BASE + P / C.GENITAL_PROGRESS_ACCELERATOR_SCALE);
+    testicleShrinkageFactor = Math.max(0, testicleShrinkageFactor);
+    const testicleVolume = Math.max(C.GENITAL_TESTICLES_MIN_VOL_ML, C.GENITAL_TESTICLES_BASE_VOL_ML - testicleShrinkageFactor).toFixed(1);
+    const testicleTexture = (E_is_dominant && E > C.GENITAL_TESTICLES_E_THRESHOLD_SOFT_TEXTURE && P > C.GENITAL_TESTICLES_P_THRESHOLD_SOFT_TEXTURE) ? 'мягкие, уменьшившиеся' : 'упругие';
+    let testiclesDescText = `🥚 Яички: объём ~${testicleVolume} мл, ${testicleTexture}. `;
+    if (E_is_dominant && E > C.GENITAL_TESTICLES_E_THRESHOLD_ATROPHY && P > C.GENITAL_TESTICLES_P_THRESHOLD_ATROPHY && parseFloat(testicleVolume) < C.GENITAL_TESTICLES_ATROPHY_VOL_ML) {
+        testiclesDescText += "Почти атрофировались.";
+    }
+    allBodyLines.push(generateBodyParameterDescription('genitalsTesticles', testiclesDescText, state.previousBodyParams.genitalsTesticles, state.recentBodyChanges));
+
+    // --- Ощущения (остаются в краткой сводке, но и в полную версию их добавим) ---
+    let feelingDesc = "✨ Ощущения: ";
+    if (P > C.FEELING_P_THRESHOLD_PERFECT_SISSY && E_is_dominant && E > C.FEELING_E_THRESHOLD_PERFECT_SISSY) feelingDesc += "Воплощение женственности. Гармония.";
+    else if (P > C.FEELING_P_THRESHOLD_REAL_SISSY && E_is_dominant) feelingDesc += "Чувствуешь себя настоящей сисси. Уверенность растет.";
+    else if (P > C.FEELING_P_THRESHOLD_TRANSFORMATION_FULL_SWING && (E_is_dominant || hormonalBalanceFactor > C.FEELING_HORMONAL_BALANCE_THRESHOLD_TRANSFORMATION_FULL_SWING)) feelingDesc += "Трансформация идет полным ходом! Прилив сисси-энергии.";
+    else if (P > C.FEELING_P_THRESHOLD_FIRST_WHISPERS) feelingDesc += "Первые шепоты изменений. Тело меняется, это волнует.";
+    else feelingDesc += "Самое начало пути. Ветерок перемен едва коснулся.";
+    // Ощущения не будем сравнивать для recentChanges, они слишком общие
+    // Вместо этого, их предыдущее значение можно хранить отдельно, если нужно отслеживать *их* изменение для лога, например.
+    // state.previousBodyParams.feeling = feelingDesc; (если нужно)
+    allBodyLines.push(feelingDesc); // Добавляем в полное описание
+
+    // --- Наряд (остается в краткой сводке, но и в полную версию) ---
+    const outfitDesc = getCurrentOutfitDescription(); // Уже есть
+    // state.previousBodyParams.outfit = outfitDesc; (если нужно)
+    allBodyLines.push(outfitDesc); // Добавляем в полное описание
+
+    // Сохраняем полное описание для модального окна
+    fullBodyDescriptionForModalStore = allBodyLines.join('\n\n');
+
+    // --- Формирование краткой сводки для el.bodyDesc ---
+    let summaryLines = [];
+    summaryLines.push(feelingDesc); // Всегда показываем ощущения
+    summaryLines.push(outfitDesc);  // Всегда показываем наряд
+
+    if (state.recentBodyChanges.length > 0) {
+        summaryLines.push("\n❗ Ключевые изменения за последний день:"); // Добавил \n для отступа
+        // Ограничим количество показываемых изменений в сводке
+        const maxChangesToShowInSummary = 3;
+        state.recentBodyChanges.slice(0, maxChangesToShowInSummary).forEach(change => {
+            summaryLines.push(`  - ${change}`);
+        });
+        if (state.recentBodyChanges.length > maxChangesToShowInSummary) {
+            summaryLines.push(`  ... и еще ${state.recentBodyChanges.length - maxChangesToShowInSummary} изм.`);
+        }
+    } else if (state.day > 1) { // Не показываем "нет изменений" в самый первый день после разблокировки
+        summaryLines.push("\nЗаметных физических изменений за последний день не произошло.");
+    }
+    
+    // Добавляем кнопку для открытия модального окна
+    // Вместо прямого добавления кнопки в текст, создадим ее через DOM
+    el.bodyDesc.innerHTML = ''; // Очищаем предыдущее содержимое
+    summaryLines.forEach(line => {
+        const p = document.createElement('p');
+        p.textContent = line;
+        // Для строк с изменениями можно добавить отступы или маркеры через CSS, если сделать их отдельными <p>
+        if (line.startsWith("  - ") || line.startsWith("\n❗") || line.startsWith("\nЗаметных")) {
+            p.style.whiteSpace = 'pre-wrap'; // Чтобы \n сработал
+            if (line.startsWith("  - ")) p.style.marginLeft = "1em";
+        }
+        el.bodyDesc.appendChild(p);
+    });
+
+    const modalButton = document.createElement('button');
+    modalButton.id = 'open-body-details-button';
+    modalButton.className = 'choice-button'; 
+    modalButton.textContent = '🔍 Подробный осмотр тела';
+    modalButton.style.marginTop = '15px'; 
+    modalButton.onclick = openBodyDetailsModal; 
+    el.bodyDesc.appendChild(modalButton);
 }
 
 export function renderWardrobeUI() {
-    // ... (код этой функции остается без изменений) ...
-    console.log("renderWardrobeUI: Начало. state.currentOutfit:", 
-        JSON.parse(JSON.stringify(state.currentOutfit)), "state.ownedClothes:", 
-        JSON.parse(JSON.stringify(state.ownedClothes)));
     el.choices.innerHTML = ''; 
 
     const wardrobeContainer = document.createElement('div');
@@ -290,10 +358,8 @@ export function renderWardrobeUI() {
     equippedSection.appendChild(equippedTitle);
 
     let anythingEquipped = false;
-    console.log("renderWardrobeUI: Проверка 'Сейчас надето'");
     for (const slot in state.currentOutfit) {
         const itemId = state.currentOutfit[slot];
-        console.log(`renderWardrobeUI: Слот '${slot}', itemId: '${itemId}'`);
         if (itemId) {
             anythingEquipped = true;
             const item = CLOTHING_ITEMS[itemId];
@@ -314,7 +380,6 @@ export function renderWardrobeUI() {
         }
     }
     if (!anythingEquipped) {
-        console.log("renderWardrobeUI: В 'Сейчас надето' ничего нет, выводим сообщение.");
         const p = document.createElement('p');
         p.textContent = 'Ничего не надето.';
         equippedSection.appendChild(p);
@@ -330,10 +395,8 @@ export function renderWardrobeUI() {
 
     let anythingInClosetToWear = false;
     const currentlyWornItemIds = Object.values(state.currentOutfit).filter(id => id !== null);
-    console.log("renderWardrobeUI: Проверка 'В шкафу'. currentlyWornItemIds:", currentlyWornItemIds);
 
     state.ownedClothes.forEach(itemId => {
-        console.log(`renderWardrobeUI: Проверяем для шкафа itemId '${itemId}'. Надет ли: ${currentlyWornItemIds.includes(itemId)}`);
         if (!currentlyWornItemIds.includes(itemId)) { 
             anythingInClosetToWear = true;
             const item = CLOTHING_ITEMS[itemId];
@@ -355,12 +418,10 @@ export function renderWardrobeUI() {
     });
 
     if (state.ownedClothes.length === 0) {
-        console.log("renderWardrobeUI: Шкаф пуст.");
         const p = document.createElement('p');
         p.textContent = 'В шкафу пока пусто.';
         ownedSection.appendChild(p);
     } else if (!anythingInClosetToWear) {
-        console.log("renderWardrobeUI: Вся доступная одежда уже надета.");
         const p = document.createElement('p');
         p.textContent = 'Вся доступная одежда уже надета.';
         ownedSection.appendChild(p);
@@ -368,11 +429,9 @@ export function renderWardrobeUI() {
     
     wardrobeContainer.appendChild(ownedSection); // Убедились, что ownedSection добавляется
     el.choices.appendChild(wardrobeContainer);
-    console.log("renderWardrobeUI: Конец отрисовки, wardrobeContainer добавлен в el.choices");
 }
 
 export function renderChoices() {
-    console.log("renderChoices: Начало отрисовки кнопок действий");
     el.choices.innerHTML = '';
     actions.filter(action => {
         if (action.tab === 'hormone' && !state.hormonesUnlocked) {
@@ -445,13 +504,44 @@ export function updateStats() {
 
     updateBody(); 
 
-    console.log(`updateStats: Текущая вкладка state.tab = '${state.tab}'`);
-
     if (state.tab === 'wardrobe') {
-        console.log("Вызов renderWardrobeUI из updateStats");
         renderWardrobeUI();
     } else { 
-        console.log("Вызов renderChoices из updateStats для другой вкладки");
         renderChoices(); 
     }
+
+    
+}
+
+export function openBodyDetailsModal() {
+    if (el.modalOverlay && el.modalBodyDetailsContent) {
+        el.modalBodyDetailsContent.innerHTML = fullBodyDescriptionForModalStore.replace(/\n/g, '<br>');
+        el.modalOverlay.classList.add('active');
+    } else {
+        console.error("Modal elements (overlay or content) not found in el object.");
+    }
+}
+
+export function closeBodyDetailsModal() {
+    if (el.modalOverlay) {
+        el.modalOverlay.classList.remove('active');
+    }
+}
+
+function generateBodyParameterDescription(paramKey, currentValue, previousValue, changeTexts) {
+    // paramKey: 'voice', 'skin' и т.д.
+    // currentValue: текущее текстовое описание параметра (например, "🎤 Голос: ...")
+    // previousValue: предыдущее текстовое описание параметра
+    // changeTexts: массив, куда добавлять сообщения об изменениях
+
+    if (currentValue !== previousValue && previousValue !== undefined && previousValue !== "") { // Добавил previousValue !== ""
+        // Извлекаем только описание, без заголовка и иконки
+        const changeDescription = currentValue.substring(currentValue.indexOf(':') + 1).trim();
+        // Можно добавить более умное определение "значимости"
+        if (changeDescription) { // Убедимся, что есть что добавлять
+             changeTexts.push(`${currentValue.split(':')[0]}: ${changeDescription.charAt(0).toLowerCase() + changeDescription.slice(1)}`);
+        }
+    }
+    state.previousBodyParams[paramKey] = currentValue; // Сохраняем текущее для следующего раза
+    return currentValue; // Возвращаем полное описание параметра для общего списка
 }

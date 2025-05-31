@@ -21,5 +21,10 @@ export const el = {
     tabs: $$('.tab-button'),
     bodyDesc: $('body-desc'),
     choices: $('choices'),
-    actionLogOutput: $('action-log-output')
+    actionLogOutput: $('action-log-output'),
+
+    // Новые элементы для модального окна
+    modalOverlay: $('modal-overlay'),
+    modalBodyDetailsContent: $('modal-body-text-content'), // Куда вставлять текст
+    modalCloseButton: $('modal-close-button')
 };

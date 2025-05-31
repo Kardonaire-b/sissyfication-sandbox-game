@@ -1,17 +1,21 @@
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&family=Roboto:wght@400;500;700&display=swap"
+    rel="stylesheet">
   <title>Игра-песочница: Сиссификация (v2.4 - UI Revamp)</title>
   <style>
     body {
       background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
       color: #eee;
-      font-family: 'Nunito', 'Segoe UI', sans-serif; /* Новый базовый шрифт */
+      font-family: 'Nunito', 'Segoe UI', sans-serif;
+      /* Новый базовый шрифт */
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -25,82 +29,112 @@
     #game-container {
       max-width: 800px;
       width: 100%;
-      background: #2c2c2e; /* Чуть светлее для контраста с body */
-      padding: 25px; /* Увеличены отступы */
+      background: #2c2c2e;
+      /* Чуть светлее для контраста с body */
+      padding: 25px;
+      /* Увеличены отступы */
       border-radius: 12px;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.65); /* Усиленная тень */
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.65);
+      /* Усиленная тень */
     }
 
     #stats {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); /* Немного шире статы */
-      gap: 15px; /* Увеличен gap */
-      margin-bottom: 25px; /* Увеличен отступ */
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      /* Немного шире статы */
+      gap: 15px;
+      /* Увеличен gap */
+      margin-bottom: 25px;
+      /* Увеличен отступ */
     }
 
     .stat {
-      background: #38383a; /* Немного изменен фон статов */
+      background: #38383a;
+      /* Немного изменен фон статов */
       padding: 14px;
       border-radius: 8px;
       text-align: center;
-      box-shadow: inset 0 1px 2px rgba(0,0,0,0.4), 0 1px 1px rgba(255,255,255,0.05); /* Легкий внешний блик */
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.4), 0 1px 1px rgba(255, 255, 255, 0.05);
+      /* Легкий внешний блик */
     }
 
     .stat-title {
-      font-family: 'Roboto', 'Segoe UI', sans-serif; /* Шрифт для заголовков статов */
-      font-size: 0.8rem; /* Чуть меньше для баланса */
+      font-family: 'Roboto', 'Segoe UI', sans-serif;
+      /* Шрифт для заголовков статов */
+      font-size: 0.8rem;
+      /* Чуть меньше для баланса */
       font-weight: 600;
-      color: #b0b0b0; /* Менее яркий цвет */
-      margin-bottom: 6px; /* Увеличен отступ */
+      color: #b0b0b0;
+      /* Менее яркий цвет */
+      margin-bottom: 6px;
+      /* Увеличен отступ */
       display: flex;
       align-items: center;
       justify-content: center;
-      text-transform: uppercase; /* Все заглавные для стиля */
+      text-transform: uppercase;
+      /* Все заглавные для стиля */
       letter-spacing: 0.5px;
     }
 
     .stat-title .icon {
       margin-right: 6px;
-      font-size: 1.1em; /* Иконки чуть крупнее относительно текста заголовка */
+      font-size: 1.1em;
+      /* Иконки чуть крупнее относительно текста заголовка */
     }
 
     .stat-value {
       font-family: 'Roboto', 'Segoe UI', sans-serif;
-      font-size: 1.05rem; /* Размер значения стата */
+      font-size: 1.05rem;
+      /* Размер значения стата */
       font-weight: 700;
       color: #f0f0f0;
     }
 
     .bar-wrap {
-      height: 10px; /* Бар чуть толще */
-      background: #222; /* Более темный фон бара */
+      height: 10px;
+      /* Бар чуть толще */
+      background: #222;
+      /* Более темный фон бара */
       border-radius: 5px;
       overflow: hidden;
       margin-top: 8px;
-      box-shadow: inset 0 1px 2px rgba(0,0,0,0.5);
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5);
     }
 
     .bar {
       height: 100%;
       width: 0;
-      transition: width .4s ease-in-out; /* Более плавная анимация бара */
+      transition: width .4s ease-in-out;
+      /* Более плавная анимация бара */
     }
 
-    #test-bar { background: #5c97ff; } /* Чуть изменены цвета баров */
-    #est-bar { background: #ff6ab4; }
-    #progress-bar { background: #50fa7b; }
+    #test-bar {
+      background: #5c97ff;
+    }
+
+    /* Чуть изменены цвета баров */
+    #est-bar {
+      background: #ff6ab4;
+    }
+
+    #progress-bar {
+      background: #50fa7b;
+    }
 
     #tabs {
       display: flex;
-      margin-bottom: 25px; /* Увеличен отступ */
+      margin-bottom: 25px;
+      /* Увеличен отступ */
     }
 
     .tab-button {
       flex: 1;
-      padding: 12px 10px; /* Паддинги для вкладок */
+      padding: 12px 10px;
+      /* Паддинги для вкладок */
       background: #3a3a3c;
       border: none;
-      color: #c0c0c0; /* Цвет неактивной вкладки */
+      color: #c0c0c0;
+      /* Цвет неактивной вкладки */
       cursor: pointer;
       font-family: 'Roboto', 'Segoe UI', sans-serif;
       font-size: 1rem;
@@ -108,98 +142,161 @@
       border-bottom: 3px solid transparent;
       transition: background .2s, color .2s, border-bottom-color .2s;
       margin: 0 3px;
-      border-radius: 6px 6px 0 0; /* Скругление углов */
+      border-radius: 6px 6px 0 0;
+      /* Скругление углов */
     }
 
-    .tab-button:first-child { margin-left: 0; }
-    .tab-button:last-child { margin-right: 0; }
+    .tab-button:first-child {
+      margin-left: 0;
+    }
+
+    .tab-button:last-child {
+      margin-right: 0;
+    }
 
     .tab-button.selected {
-      background: #4f4f52; /* Фон активной вкладки */
-      color: #ffffff; /* Цвет текста активной вкладки */
-      border-bottom-color: #00aeff; /* Новый акцентный цвет (голубой) */
+      background: #4f4f52;
+      /* Фон активной вкладки */
+      color: #ffffff;
+      /* Цвет текста активной вкладки */
+      border-bottom-color: #00aeff;
+      /* Новый акцентный цвет (голубой) */
     }
+
     .tab-button:hover:not(.selected) {
-        background: #454548;
-        color: #e0e0e0;
+      background: #454548;
+      color: #e0e0e0;
     }
-    
+
     #body-desc-container {
       background: #38383a;
-      padding: 20px; /* Увеличены отступы */
+      padding: 20px;
+      /* Увеличены отступы */
       border-radius: 8px;
-      margin-bottom: 25px; /* Увеличен отступ */
-      box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
+      margin-bottom: 25px;
+      /* Увеличен отступ */
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5);
     }
 
     #body-desc {
       white-space: pre-wrap;
-      line-height: 1.75; /* Увеличена высота строки */
+      line-height: 1.75;
+      /* Увеличена высота строки */
       font-style: italic;
-      font-size: 1rem; /* Увеличен шрифт описания */
+      font-size: 1rem;
+      /* Увеличен шрифт описания */
       color: #e0e0e0;
     }
-    
-    @keyframes fadeInLog { /* Анимация для лога */
-        from { opacity: 0.6; transform: translateY(-2px); }
-        to { opacity: 1; transform: translateY(0); }
+
+    @keyframes fadeInLog {
+
+      /* Анимация для лога */
+      from {
+        opacity: 0.6;
+        transform: translateY(-2px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     #action-log-output {
       background: #333335;
-      padding: 14px; /* Увеличены отступы */
+      padding: 14px;
+      /* Увеличены отступы */
       border-radius: 6px;
-      margin-bottom: 20px; /* Увеличен отступ */
+      margin-bottom: 20px;
+      /* Увеличен отступ */
       text-align: center;
       font-style: italic;
-      min-height: 1.4em; /* Чуть больше минимальная высота */
+      min-height: 1.4em;
+      /* Чуть больше минимальная высота */
       color: #ddd;
       transition: background-color 0.3s, color 0.3s, opacity 0.2s, transform 0.2s;
       font-size: 0.95rem;
     }
-    #action-log-output.log-updated { /* Класс для анимации */
-        animation: fadeInLog 0.3s ease-out;
+
+    #action-log-output.log-updated {
+      /* Класс для анимации */
+      animation: fadeInLog 0.3s ease-out;
     }
 
     /* Стили для разных типов логов остаются теми же, можно их настроить под новую палитру если нужно */
-    #action-log-output.log-default { color: #ddd; }
-    #action-log-output.log-money-gain { color: #a1ffb6; background-color: rgba(161, 255, 182, 0.1); }
-    #action-log-output.log-money-loss { color: #ffacac; background-color: rgba(255, 172, 172, 0.1); }
-    #action-log-output.log-hormone-change { color: #f9c0ff; background-color: rgba(249, 192, 255, 0.1); }
-    #action-log-output.log-progress-change { color: #fff3a1; background-color: rgba(255, 243, 161, 0.1); }
-    #action-log-output.log-discovery { color: #a1e3ff; background-color: rgba(161, 227, 255, 0.1); }
-    #action-log-output.log-important { font-weight: bold; color: #ffc869; background-color: rgba(255, 200, 105, 0.15); }
+    #action-log-output.log-default {
+      color: #ddd;
+    }
+
+    #action-log-output.log-money-gain {
+      color: #a1ffb6;
+      background-color: rgba(161, 255, 182, 0.1);
+    }
+
+    #action-log-output.log-money-loss {
+      color: #ffacac;
+      background-color: rgba(255, 172, 172, 0.1);
+    }
+
+    #action-log-output.log-hormone-change {
+      color: #f9c0ff;
+      background-color: rgba(249, 192, 255, 0.1);
+    }
+
+    #action-log-output.log-progress-change {
+      color: #fff3a1;
+      background-color: rgba(255, 243, 161, 0.1);
+    }
+
+    #action-log-output.log-discovery {
+      color: #a1e3ff;
+      background-color: rgba(161, 227, 255, 0.1);
+    }
+
+    #action-log-output.log-important {
+      font-weight: bold;
+      color: #ffc869;
+      background-color: rgba(255, 200, 105, 0.15);
+    }
 
     #choices {
       background: #38383a;
       padding: 15px;
       border-radius: 8px;
-      box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5);
     }
 
     .choice-button {
       display: block;
       width: 100%;
-      padding: 14px; /* Увеличен паддинг */
-      margin: 10px 0; /* Увеличен отступ */
-      background: #4a4a4e; /* Новый фон кнопок */
-      border: 1px solid #5f5f63; /* Обводка */
+      padding: 14px;
+      /* Увеличен паддинг */
+      margin: 10px 0;
+      /* Увеличен отступ */
+      background: #4a4a4e;
+      /* Новый фон кнопок */
+      border: 1px solid #5f5f63;
+      /* Обводка */
       border-radius: 6px;
       color: #eee;
       cursor: pointer;
-      font-family: 'Roboto', 'Segoe UI', sans-serif; /* Шрифт для кнопок */
-      font-size: 1rem; /* Размер шрифта */
+      font-family: 'Roboto', 'Segoe UI', sans-serif;
+      /* Шрифт для кнопок */
+      font-size: 1rem;
+      /* Размер шрифта */
       font-weight: 600;
       transition: background .2s, transform .1s, box-shadow .2s;
       box-sizing: border-box;
-      box-shadow: 0 2px 3px rgba(0,0,0,0.25);
+      box-shadow: 0 2px 3px rgba(0, 0, 0, 0.25);
     }
 
-    .choice-button.disabled, .choice-button:disabled {
+    .choice-button.disabled,
+    .choice-button:disabled {
       background: #404043;
       border-color: #4f4f52;
       cursor: not-allowed;
-      opacity: .65; /* Чуть менее прозрачный */
+      opacity: .65;
+      /* Чуть менее прозрачный */
       box-shadow: none;
       color: #999;
     }
@@ -207,28 +304,145 @@
     .choice-button:hover:enabled {
       background: #5a5a5e;
       transform: translateY(-1px);
-      box-shadow: 0 4px 7px rgba(0,0,0,0.3);
+      box-shadow: 0 4px 7px rgba(0, 0, 0, 0.3);
     }
+
     .choice-button:active:enabled {
-        background: #505054;
-        transform: translateY(0px);
-        box-shadow: 0 1px 2px rgba(0,0,0,0.25);
+      background: #505054;
+      transform: translateY(0px);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+      /* Здесь больше НЕТ стилей модалки */
     }
+
+    /* СТИЛИ МОДАЛЬНОГО ОКНА (на том же уровне, что и .choice-button:active:enabled) */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      /* Полупрозрачный фон */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      /* Поверх всего остального */
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal-content {
+      background: #38383a;
+      /* Тот же фон, что у body-desc-container */
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 5px 25px rgba(0, 0, 0, 0.5);
+      width: 90%;
+      max-width: 700px;
+      /* Ограничение ширины */
+      max-height: 85vh;
+      /* Ограничение высоты */
+      overflow-y: auto;
+      /* Прокрутка, если контент не помещается */
+      position: relative;
+      color: #e0e0e0;
+      transform: scale(0.95);
+      transition: transform 0.3s ease;
+    }
+
+    .modal-overlay.active .modal-content {
+      transform: scale(1);
+    }
+
+
+    .modal-content h2 {
+      margin-top: 0;
+      color: #ffffff;
+      font-family: 'Roboto', 'Segoe UI', sans-serif;
+      border-bottom: 1px solid #4f4f52;
+      padding-bottom: 10px;
+      margin-bottom: 15px;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      background: none;
+      border: none;
+      font-size: 2.2rem;
+      /* Крупнее крестик */
+      color: #aaa;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0;
+      transition: color 0.2s;
+    }
+
+    .modal-close:hover {
+      color: #fff;
+    }
+
+    #modal-body-text-content {
+      white-space: pre-wrap;
+      /* Сохраняем переносы строк из JS */
+      line-height: 1.75;
+      font-size: 0.95rem;
+      /* Чуть меньше основного для компактности */
+    }
+
+    #modal-body-text-content p {
+      /* Если будешь использовать <p> для каждой строки */
+      margin-bottom: 1em;
+    }
+
+    #modal-body-text-content p:last-child {
+      margin-bottom: 0;
+    }
+
   </style>
 </head>
+
 <body>
   <div id="game-container">
     <div id="stats">
-      <div class="stat"><div class="stat-title"><span class="icon">🗓️</span>День</div><div class="stat-value" id="day">0</div></div>
-      <div class="stat"><div class="stat-title"><span class="icon">💰</span>Деньги</div><div class="stat-value" id="money">50₽</div></div>
-      <div class="stat"><div class="stat-title"><span class="icon">♂️</span>T</div><div class="stat-value" id="testosterone">50</div><div class="bar-wrap"><div id="test-bar" class="bar"></div></div></div>
-      <div class="stat"><div class="stat-title"><span class="icon">♀️</span>E</div><div class="stat-value" id="estrogen">10</div><div class="bar-wrap"><div id="est-bar" class="bar"></div></div></div>
+      <div class="stat">
+        <div class="stat-title"><span class="icon">🗓️</span>День</div>
+        <div class="stat-value" id="day">0</div>
+      </div>
+      <div class="stat">
+        <div class="stat-title"><span class="icon">💰</span>Деньги</div>
+        <div class="stat-value" id="money">50₽</div>
+      </div>
+      <div class="stat">
+        <div class="stat-title"><span class="icon">♂️</span>T</div>
+        <div class="stat-value" id="testosterone">50</div>
+        <div class="bar-wrap">
+          <div id="test-bar" class="bar"></div>
+        </div>
+      </div>
+      <div class="stat">
+        <div class="stat-title"><span class="icon">♀️</span>E</div>
+        <div class="stat-value" id="estrogen">10</div>
+        <div class="bar-wrap">
+          <div id="est-bar" class="bar"></div>
+        </div>
+      </div>
       <div class="stat">
         <div class="stat-title">
-            <span class="icon" id="progress-icon">💡</span><span id="progress-title">Открытия</span>
+          <span class="icon" id="progress-icon">💡</span><span id="progress-title">Открытия</span>
         </div>
         <div class="stat-value" id="progress">0</div>
-        <div class="bar-wrap"><div id="progress-bar" class="bar"></div></div>
+        <div class="bar-wrap">
+          <div id="progress-bar" class="bar"></div>
+        </div>
       </div>
     </div>
     <div id="tabs">
@@ -238,12 +452,24 @@
       <button class="tab-button" data-tab="wardrobe">Гардероб</button>
     </div>
     <div id="body-desc-container">
-        <div id="body-desc">Загрузка...</div>
+      <div id="body-desc">Загрузка...</div>
     </div>
     <div id="action-log-output" class="log-default">Загрузка игры...</div>
     <div id="choices">
     </div>
   </div>
+
+  <div id="modal-overlay" class="modal-overlay">
+    <div id="modal-body-details" class="modal-content">
+      <button id="modal-close-button" class="modal-close">×</button>
+      <h2>Подробное описание тела</h2>
+      <div id="modal-body-text-content">
+        <!-- Сюда будет загружаться текст -->
+      </div>
+    </div>
+  </div>
+
   <script type="module" src="main.js"></script>
 </body>
+
 </html>

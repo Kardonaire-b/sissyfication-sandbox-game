@@ -57,7 +57,22 @@ export const state = {
   t_blocker_active_days: 0,
   natural_t_multiplier: 1.0,
 
-  // Новые состояния для гардероба
   ownedClothes: getInitialOwnedClothes(), // Массив ID купленных вещей
   currentOutfit: getInitialOutfit(),       // Объект { slot: itemId } для надетой одежды
+
+  // --- Новые свойства для отслеживания изменений тела ---
+  // Будем хранить предыдущие текстовые описания ключевых аспектов
+  previousBodyParams: {
+    // voice: "",
+    // skin: "",
+    // bodyHair: "",
+    // breast: "",
+    // figure: "",
+    // muscle: "",
+    // genitalsPenis: "",
+    // genitalsTesticles: "",
+    // Эти поля будут заполняться динамически
+  },
+  recentBodyChanges: [], // Массив строк ["Изменился голос: стал выше.", "Кожа стала мягче."]
+  // Ощущения и наряд не будем сюда включать, т.к. они всегда в сводке
 };

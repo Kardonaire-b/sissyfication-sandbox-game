@@ -3,6 +3,7 @@ import { el } from './domUtils.js';
 import { actions } from './actions.js';
 import { nextDay } from './gameLogic.js';
 import { log, updateStats, updateTabsVisibility, updateProgressDisplay, renderChoices, renderWardrobeUI } from './ui.js';
+import { closeBodyDetailsModal } from './ui.js';
 
 function initializeGame() {
     updateTabsVisibility();
@@ -29,9 +30,27 @@ function initializeGame() {
         });
     });
 
+    if (el.modalCloseButton) {
+        el.modalCloseButton.addEventListener('click', closeBodyDetailsModal);
+    }
+    if (el.modalOverlay) {
+        // Закрытие по клику на оверлей (вне контента модалки)
+        el.modalOverlay.addEventListener('click', (event) => {
+            if (event.target === el.modalOverlay) {
+                closeBodyDetailsModal();
+            }
+        });
+    }
+     // Закрытие модалки по Escape
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && el.modalOverlay && el.modalOverlay.classList.contains('active')) {
+            closeBodyDetailsModal();
+        }
+    });
+
+
     nextDay();
     log("✨ Ты стоишь на пороге чего-то нового... ✨ Что будешь делать?", 'important');
-
 }
 
 // Запускаем игру после полной загрузки DOM
