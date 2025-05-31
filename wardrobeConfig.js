@@ -97,7 +97,3 @@ export const CLOTHING_ITEMS = {
     },
     // Можно добавить еще предметы, например, платье (full_body), другие виды белья, обувь и т.д.
 };
-
-// Минимальный прогресс для доступа к магазину одежды
-
-export const MIN_PROGRESS_FOR_CLOTHING_SHOP = 5;

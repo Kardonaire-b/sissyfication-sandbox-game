@@ -12,15 +12,20 @@ function initializeGame() {
 
     el.tabs.forEach(btn => {
         btn.addEventListener('click', () => {
+            console.log(`Tab clicked: ${btn.dataset.tab}. Предыдущий state.tab: ${state.tab}`);
+
             if (btn.dataset.tab === 'hormone' && !state.hormonesUnlocked) return;
 
             state.tab = btn.dataset.tab;
+            console.log(`Новый state.tab: ${state.tab}`);
             el.tabs.forEach(b => b.classList.toggle('selected', b === btn));
 
             // В зависимости от вкладки, вызываем нужную функцию рендеринга
             if (state.tab === 'wardrobe') {
+                console.log("Вызов renderWardrobeUI из обработчика табов");
                 renderWardrobeUI(); // Новая функция для вкладки "Гардероб"
             } else {
+                console.log("Вызов renderChoices из обработчика табов");
                 renderChoices(actions); // Для всех остальных вкладок
             }
         });
@@ -29,14 +34,6 @@ function initializeGame() {
     nextDay();
     log("✨ Ты стоишь на пороге чего-то нового... ✨ Что будешь делать?", 'important');
 
-    // Начальная отрисовка кнопок для активной вкладки 'income' после первого nextDay
-    // Это важно, если nextDay() не перерисовывает choices сам по себе при первой загрузке
-    // или если активный таб по умолчанию не 'income'
-    if (state.tab === 'income') { // или любой другой таб по умолчанию, где есть actions
-        renderChoices(actions);
-    } else if (state.tab === 'wardrobe') {
-        renderWardrobeUI();
-    }
 }
 
 // Запускаем игру после полной загрузки DOM

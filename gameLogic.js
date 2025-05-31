@@ -2,7 +2,7 @@ import { state } from './state.js';
 import * as C from './config.js';
 import { log, updateTabsVisibility, updateProgressDisplay, updateStats } from './ui.js';
 
-let gameActionsRef; // Ссылка на массив actions из main.js
+export let gameActionsRef;
 
 export function initGameLogic(actionsArray) {
     gameActionsRef = actionsArray;

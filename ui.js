@@ -272,6 +272,9 @@ export function updateBody() {
 }
 
 export function renderWardrobeUI() {
+    console.log("renderWardrobeUI: Начало. state.currentOutfit:", 
+        JSON.parse(JSON.stringify(state.currentOutfit)), "state.ownedClothes:", 
+        JSON.parse(JSON.stringify(state.ownedClothes)));
     el.choices.innerHTML = ''; // Очищаем контейнер для кнопок действий
 
     const wardrobeContainer = document.createElement('div');
@@ -285,8 +288,10 @@ export function renderWardrobeUI() {
     equippedSection.appendChild(equippedTitle);
 
     let anythingEquipped = false;
+    console.log("renderWardrobeUI: Проверка 'Сейчас надето'");
     for (const slot in state.currentOutfit) {
         const itemId = state.currentOutfit[slot];
+        console.log(`renderWardrobeUI: Слот '${slot}', itemId: '${itemId}'`);
         if (itemId) {
             anythingEquipped = true;
             const item = CLOTHING_ITEMS[itemId];
@@ -307,6 +312,7 @@ export function renderWardrobeUI() {
         }
     }
     if (!anythingEquipped) {
+        console.log("renderWardrobeUI: В 'Сейчас надето' ничего нет, выводим сообщение.");
         const p = document.createElement('p');
         p.textContent = 'Ничего не надето.';
         equippedSection.appendChild(p);
@@ -322,8 +328,10 @@ export function renderWardrobeUI() {
 
     let anythingInClosetToWear = false;
     const currentlyWornItemIds = Object.values(state.currentOutfit).filter(id => id !== null);
+    console.log("renderWardrobeUI: Проверка 'В шкафу'. currentlyWornItemIds:", currentlyWornItemIds);
 
     state.ownedClothes.forEach(itemId => {
+        console.log(`renderWardrobeUI: Проверяем для шкафа itemId '${itemId}'. Надет ли: ${currentlyWornItemIds.includes(itemId)}`);
         if (!currentlyWornItemIds.includes(itemId)) { // Показываем только то, что не надето
             anythingInClosetToWear = true;
             const item = CLOTHING_ITEMS[itemId];
@@ -344,22 +352,31 @@ export function renderWardrobeUI() {
         }
     });
 
-    if (!anythingInClosetToWear && state.ownedClothes.length === currentlyWornItemIds.length) {
+    if (!anythingInClosetToWear && state.ownedClothes.length === currentlyWornItemIds.length && state.ownedClothes.length > 0) {
+         console.log("renderWardrobeUI: Вся доступная одежда уже надета.");
          const p = document.createElement('p');
          p.textContent = 'Вся доступная одежда уже надета или в шкафу пусто.';
          ownedSection.appendChild(p);
     } else if (state.ownedClothes.length === 0) {
+        console.log("renderWardrobeUI: Шкаф пуст.");
         const p = document.createElement('p');
         p.textContent = 'В шкафу пока пусто.';
         ownedSection.appendChild(p);
+    } else if (!anythingInClosetToWear && state.ownedClothes.length > 0) { // Если есть вещи, но все надеты
+        console.log("renderWardrobeUI: В шкафу есть вещи, но все они сейчас надеты (или для них нет места).");
+        // Тут можно тоже какое-то сообщение вывести, если это не покрывается предыдущим.
+        // Или предыдущее условие "Вся доступная одежда уже надета" должно это покрыть.
     }
 
 
+    wardrobeContainer.appendChild(equippedSection);
     wardrobeContainer.appendChild(ownedSection);
     el.choices.appendChild(wardrobeContainer);
+    console.log("renderWardrobeUI: Конец отрисовки, wardrobeContainer добавлен в el.choices");
 }
 
 export function renderChoices(actionsArray) {
+    console.log("renderChoices: Начало отрисовки кнопок действий");
     el.choices.innerHTML = '';
     actionsArray.filter(action => {
         if (action.tab === 'hormone' && !state.hormonesUnlocked) {
@@ -442,5 +459,21 @@ export function updateStats(actionsArray) { // Принимает actionsArray �
     el.ebar.style.width = (state.estrogen / C.MAX_HORMONE_LEVEL * 100) + '%';
 
     updateBody(); // Обновляем описание тела всегда, когда обновляются статы
+
+    console.log(`updateStats: Текущая вкладка state.tab = '${state.tab}'`);
+
+    // Проверяем текущую активную вкладку и вызываем соответствующую функцию рендеринга
+    if (state.tab === 'wardrobe') {
+        console.log("Вызов renderWardrobeUI из updateStats");
+        renderWardrobeUI(); // Если активна вкладка "Гардероб", перерисовываем её
+    } else if (actionsArray) { // Убедимся, что actionsArray передан для других вкладок
+        renderChoices(actionsArray); // Для остальных вкладок перерисовываем кнопки действий
+    } else if (!actionsArray && state.tab !== 'wardrobe') {
+        // Этого не должно происходить, если actionsArray всегда передается, когда он нужен.
+        // Очищаем choices, чтобы не оставалось старых кнопок, если что-то пошло не так.
+        console.warn(`updateStats вызван для вкладки ${state.tab} без actionsArray.`);
+        el.choices.innerHTML = '';
+    }
+
     renderChoices(actionsArray); // Передаем actionsArray
 }

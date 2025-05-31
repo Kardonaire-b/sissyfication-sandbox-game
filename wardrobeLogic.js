@@ -4,6 +4,7 @@ import { updateStats } from './ui.js'; // Понадобится для обно
 import { gameActionsRef } from './gameLogic.js'; // Получаем ссылку на actions из gameLogic
 
 export function equipItem(itemId) {
+    console.log(`wardrobeLogic: equipItem вызван. Текущий state.tab = '${state.tab}'`);
     console.log(`Попытка надеть: ${itemId}`);
     const itemToEquip = CLOTHING_ITEMS[itemId];
 
@@ -58,6 +59,7 @@ export function equipItem(itemId) {
 
 // Внутренняя функция для снятия без полного обновления UI (используется для разрешения конфликтов)
 function unequipItemInternal(slotToUnequip) {
+    console.log(`wardrobeLogic: unequipItem вызван. Текущий state.tab = '${state.tab}'`);
     const itemToRemoveId = state.currentOutfit[slotToUnequip];
     if (itemToRemoveId) {
         // const itemToRemove = CLOTHING_ITEMS[itemToRemoveId];
