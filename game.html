@@ -3,76 +3,229 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Игра-песочница: Сиссификация (v2.3 - Gradual Discovery Modular)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <title>Игра-песочница: Сиссификация (v2.4 - UI Revamp)</title>
   <style>
-    /* Стили остаются те же, что и в v2.2 */
-    body { background: linear-gradient(135deg,#2a2a2a,#1a1a1a); color:#eee; font-family:'Segoe UI',sans-serif; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; min-height:100vh; margin:0; padding:20px; box-sizing: border-box; }
-    #game-container { max-width:800px; width:100%; background:#2e2e2e; padding:20px; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.6); }
-    #stats { display:grid; grid-template-columns:repeat(auto-fit, minmax(120px, 1fr)); gap:10px; margin-bottom:20px; }
-    .stat { background:#3a3a3a; padding:12px; border-radius:8px; text-align:center; box-shadow:inset 0 1px 3px rgba(0,0,0,0.5); }
-    .stat-title { 
-        font-size:0.85rem; 
-        color:#aaa; 
-        margin-bottom:4px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+    body {
+      background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
+      color: #eee;
+      font-family: 'Nunito', 'Segoe UI', sans-serif; /* Новый базовый шрифт */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+      box-sizing: border-box;
     }
-    .stat-title .icon {
-        margin-right: 5px;
-        font-size: 1em;
-    }
-    .stat-value { font-size:1.1rem; font-weight:bold; }
-    .bar-wrap { height:8px; background:#444; border-radius:4px; overflow:hidden; margin-top:6px; }
-    .bar { height:100%; width:0; transition:width .4s; }
-    #test-bar { background: #69a2ff; }
-    #est-bar { background: #ff69b4; }
-    #progress-bar { background: #69ff8e; }
 
-    #tabs { display:flex; margin-bottom:20px; }
-    .tab-button { flex:1; padding:10px; background:#3a3a3a; border:none; color:#eee; cursor:pointer; font-size:1rem; border-bottom:2px solid transparent; transition:background .3s, opacity .3s, display .3s; margin: 0 2px; border-radius: 4px 4px 0 0;}
+    #game-container {
+      max-width: 800px;
+      width: 100%;
+      background: #2c2c2e; /* Чуть светлее для контраста с body */
+      padding: 25px; /* Увеличены отступы */
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.65); /* Усиленная тень */
+    }
+
+    #stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); /* Немного шире статы */
+      gap: 15px; /* Увеличен gap */
+      margin-bottom: 25px; /* Увеличен отступ */
+    }
+
+    .stat {
+      background: #38383a; /* Немного изменен фон статов */
+      padding: 14px;
+      border-radius: 8px;
+      text-align: center;
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.4), 0 1px 1px rgba(255,255,255,0.05); /* Легкий внешний блик */
+    }
+
+    .stat-title {
+      font-family: 'Roboto', 'Segoe UI', sans-serif; /* Шрифт для заголовков статов */
+      font-size: 0.8rem; /* Чуть меньше для баланса */
+      font-weight: 600;
+      color: #b0b0b0; /* Менее яркий цвет */
+      margin-bottom: 6px; /* Увеличен отступ */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-transform: uppercase; /* Все заглавные для стиля */
+      letter-spacing: 0.5px;
+    }
+
+    .stat-title .icon {
+      margin-right: 6px;
+      font-size: 1.1em; /* Иконки чуть крупнее относительно текста заголовка */
+    }
+
+    .stat-value {
+      font-family: 'Roboto', 'Segoe UI', sans-serif;
+      font-size: 1.05rem; /* Размер значения стата */
+      font-weight: 700;
+      color: #f0f0f0;
+    }
+
+    .bar-wrap {
+      height: 10px; /* Бар чуть толще */
+      background: #222; /* Более темный фон бара */
+      border-radius: 5px;
+      overflow: hidden;
+      margin-top: 8px;
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.5);
+    }
+
+    .bar {
+      height: 100%;
+      width: 0;
+      transition: width .4s ease-in-out; /* Более плавная анимация бара */
+    }
+
+    #test-bar { background: #5c97ff; } /* Чуть изменены цвета баров */
+    #est-bar { background: #ff6ab4; }
+    #progress-bar { background: #50fa7b; }
+
+    #tabs {
+      display: flex;
+      margin-bottom: 25px; /* Увеличен отступ */
+    }
+
+    .tab-button {
+      flex: 1;
+      padding: 12px 10px; /* Паддинги для вкладок */
+      background: #3a3a3c;
+      border: none;
+      color: #c0c0c0; /* Цвет неактивной вкладки */
+      cursor: pointer;
+      font-family: 'Roboto', 'Segoe UI', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      border-bottom: 3px solid transparent;
+      transition: background .2s, color .2s, border-bottom-color .2s;
+      margin: 0 3px;
+      border-radius: 6px 6px 0 0; /* Скругление углов */
+    }
+
     .tab-button:first-child { margin-left: 0; }
     .tab-button:last-child { margin-right: 0; }
-    .tab-button.selected { background:#555; border-bottom-color:#ff69b4; }
-    
-    #body-desc-container { background:#3a3a3a; padding:20px; border-radius:8px; margin-bottom:20px; box-shadow:inset 0 1px 3px rgba(0,0,0,0.5); }
-    #body-desc { white-space:pre-wrap; line-height:1.7; font-style:italic; font-size:0.95rem; }
-    
-    #action-log-output { 
-        background:#333; 
-        padding:12px;
-        border-radius:6px; 
-        margin-bottom:15px; 
-        text-align:center; 
-        font-style:italic; 
-        min-height: 1.3em;
-        color: #ddd;
-        transition: background-color 0.3s, color 0.3s;
-    }
-    #action-log-output.log-default { color: #ddd; }
-    #action-log-output.log-money-gain { color: #a1ffb6; }
-    #action-log-output.log-money-loss { color: #ffacac; }
-    #action-log-output.log-hormone-change { color: #f9c0ff; }
-    #action-log-output.log-progress-change { color: #fff3a1; }
-    #action-log-output.log-discovery { color: #a1e3ff; /* Голубой для открытий */ }
-    #action-log-output.log-important { font-weight: bold; color: #ffc869; }
 
-    #choices { background:#3a3a3a; padding:15px; border-radius:8px; margin-bottom:20px; box-shadow:inset 0 1px 3px rgba(0,0,0,0.5); }
-    .choice-button { display:block; width:100%; padding:12px; margin:8px 0; background:#555; border:none; border-radius:6px; color:#eee; cursor:pointer; font-size:1rem; transition:background .3s,transform .1s; box-sizing: border-box; }
-    .choice-button.disabled, .choice-button:disabled { background:#444; cursor:not-allowed; opacity:.7; }
-    .choice-button:hover:enabled { background:#666; transform:translateY(-2px); }
+    .tab-button.selected {
+      background: #4f4f52; /* Фон активной вкладки */
+      color: #ffffff; /* Цвет текста активной вкладки */
+      border-bottom-color: #00aeff; /* Новый акцентный цвет (голубой) */
+    }
+    .tab-button:hover:not(.selected) {
+        background: #454548;
+        color: #e0e0e0;
+    }
+    
+    #body-desc-container {
+      background: #38383a;
+      padding: 20px; /* Увеличены отступы */
+      border-radius: 8px;
+      margin-bottom: 25px; /* Увеличен отступ */
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
+    }
+
+    #body-desc {
+      white-space: pre-wrap;
+      line-height: 1.75; /* Увеличена высота строки */
+      font-style: italic;
+      font-size: 1rem; /* Увеличен шрифт описания */
+      color: #e0e0e0;
+    }
+    
+    @keyframes fadeInLog { /* Анимация для лога */
+        from { opacity: 0.6; transform: translateY(-2px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    #action-log-output {
+      background: #333335;
+      padding: 14px; /* Увеличены отступы */
+      border-radius: 6px;
+      margin-bottom: 20px; /* Увеличен отступ */
+      text-align: center;
+      font-style: italic;
+      min-height: 1.4em; /* Чуть больше минимальная высота */
+      color: #ddd;
+      transition: background-color 0.3s, color 0.3s, opacity 0.2s, transform 0.2s;
+      font-size: 0.95rem;
+    }
+    #action-log-output.log-updated { /* Класс для анимации */
+        animation: fadeInLog 0.3s ease-out;
+    }
+
+    /* Стили для разных типов логов остаются теми же, можно их настроить под новую палитру если нужно */
+    #action-log-output.log-default { color: #ddd; }
+    #action-log-output.log-money-gain { color: #a1ffb6; background-color: rgba(161, 255, 182, 0.1); }
+    #action-log-output.log-money-loss { color: #ffacac; background-color: rgba(255, 172, 172, 0.1); }
+    #action-log-output.log-hormone-change { color: #f9c0ff; background-color: rgba(249, 192, 255, 0.1); }
+    #action-log-output.log-progress-change { color: #fff3a1; background-color: rgba(255, 243, 161, 0.1); }
+    #action-log-output.log-discovery { color: #a1e3ff; background-color: rgba(161, 227, 255, 0.1); }
+    #action-log-output.log-important { font-weight: bold; color: #ffc869; background-color: rgba(255, 200, 105, 0.15); }
+
+    #choices {
+      background: #38383a;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
+    }
+
+    .choice-button {
+      display: block;
+      width: 100%;
+      padding: 14px; /* Увеличен паддинг */
+      margin: 10px 0; /* Увеличен отступ */
+      background: #4a4a4e; /* Новый фон кнопок */
+      border: 1px solid #5f5f63; /* Обводка */
+      border-radius: 6px;
+      color: #eee;
+      cursor: pointer;
+      font-family: 'Roboto', 'Segoe UI', sans-serif; /* Шрифт для кнопок */
+      font-size: 1rem; /* Размер шрифта */
+      font-weight: 600;
+      transition: background .2s, transform .1s, box-shadow .2s;
+      box-sizing: border-box;
+      box-shadow: 0 2px 3px rgba(0,0,0,0.25);
+    }
+
+    .choice-button.disabled, .choice-button:disabled {
+      background: #404043;
+      border-color: #4f4f52;
+      cursor: not-allowed;
+      opacity: .65; /* Чуть менее прозрачный */
+      box-shadow: none;
+      color: #999;
+    }
+
+    .choice-button:hover:enabled {
+      background: #5a5a5e;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 7px rgba(0,0,0,0.3);
+    }
+    .choice-button:active:enabled {
+        background: #505054;
+        transform: translateY(0px);
+        box-shadow: 0 1px 2px rgba(0,0,0,0.25);
+    }
   </style>
 </head>
 <body>
   <div id="game-container">
     <div id="stats">
-      <div class="stat"><div class="stat-title"><span class="icon">🗓️</span>День</div><div class="stat-value" id="day">0</div></div> <!-- Начальное значение дня 0, main.js его обновит -->
+      <div class="stat"><div class="stat-title"><span class="icon">🗓️</span>День</div><div class="stat-value" id="day">0</div></div>
       <div class="stat"><div class="stat-title"><span class="icon">💰</span>Деньги</div><div class="stat-value" id="money">50₽</div></div>
       <div class="stat"><div class="stat-title"><span class="icon">♂️</span>T</div><div class="stat-value" id="testosterone">50</div><div class="bar-wrap"><div id="test-bar" class="bar"></div></div></div>
       <div class="stat"><div class="stat-title"><span class="icon">♀️</span>E</div><div class="stat-value" id="estrogen">10</div><div class="bar-wrap"><div id="est-bar" class="bar"></div></div></div>
       <div class="stat">
         <div class="stat-title">
-            <span class="icon" id="progress-icon">💡</span><span id="progress-title">Открытия</span> <!-- Начальные значения -->
+            <span class="icon" id="progress-icon">💡</span><span id="progress-title">Открытия</span>
         </div>
         <div class="stat-value" id="progress">0</div>
         <div class="bar-wrap"><div id="progress-bar" class="bar"></div></div>
@@ -80,17 +233,15 @@
     </div>
     <div id="tabs">
       <button class="tab-button selected" data-tab="income">Доход</button>
-      <button class="tab-button" data-tab="hormone" style="display: none;">Гормоны</button> <!-- Изначально скрыт -->
+      <button class="tab-button" data-tab="hormone" style="display: none;">Гормоны</button>
       <button class="tab-button" data-tab="other">Разное</button>
       <button class="tab-button" data-tab="wardrobe">Гардероб</button>
     </div>
     <div id="body-desc-container">
-        <!-- Начальное описание тела может быть пустым или базовым, т.к. main.js вызовет updateBody -->
-        <div id="body-desc">Загрузка...</div> 
+        <div id="body-desc">Загрузка...</div>
     </div>
-    <div id="action-log-output" class="log-default">Загрузка игры...</div> <!-- Начальное сообщение лога -->
+    <div id="action-log-output" class="log-default">Загрузка игры...</div>
     <div id="choices">
-        <!-- Кнопки будут отрисованы через JavaScript -->
     </div>
   </div>
   <script type="module" src="main.js"></script>
