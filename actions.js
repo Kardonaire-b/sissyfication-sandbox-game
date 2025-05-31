@@ -19,15 +19,23 @@ export const actions = [
         condition: () => state.hormonesUnlocked && state.t_blocker_active_days === 0,
         handler: function() {
             if (state.money >= C.T_BLOCKER_COST) {
-                state.money -= C.T_BLOCKER_COST;
-                state.t_blocker_active_days = C.T_BLOCKER_DURATION_DAYS;
-                state.natural_t_multiplier = C.T_BLOCKER_SUPPRESSION_FACTOR;
-                nextDay();
-                log(`💊 Блокатор тестостерона активирован на ${C.T_BLOCKER_DURATION_DAYS} дней!`, 'hormone-change');
-            } else {
-                log(`Недостаточно денег для блокатора. Нужно ${C.T_BLOCKER_COST}${C.CURRENCY_SYMBOL}.`, 'money-loss');
-            }
-        }
+            state.money -= C.T_BLOCKER_COST;
+            state.t_blocker_active_days = C.T_BLOCKER_DURATION_DAYS;
+            state.natural_t_multiplier = C.T_BLOCKER_SUPPRESSION_FACTOR;
+            nextDay();
+            log(`💊 Блокатор тестостерона активирован на ${C.T_BLOCKER_DURATION_DAYS} дней!`, 'hormone-change');
+    } else {
+        // Кнопка и так будет задизейблена и покажет нехватку.
+        // Можно либо оставить эту проверку как вторую линию защиты (без log),
+        // либо полностью положиться на UI, который не даст нажать кнопку.
+        // Если оставить, то без log:
+        // return; // Просто ничего не делать
+        // Или, если хотите лог для разработчика, а не игрока:
+        console.warn(`Действие ${this.id} вызвано при нехватке денег. UI должен был предотвратить это.`);
+        // Убираем log для игрока:
+        // log(`Недостаточно денег для блокатора. Нужно ${C.T_BLOCKER_COST}${C.CURRENCY_SYMBOL}.`, 'money-loss');
+    }
+}
     },
     {
         id: 't_pill',
@@ -70,7 +78,7 @@ export const actions = [
     },
      {
         id: 'browse_internet',
-        text: 'Искать информацию в интернете', // Иконка уже удалена по пункту 1
+        text: 'Искать информацию в интернете',
         cost: 0, tab: 'other',
         handler: () => {
             state.discoveryPoints = Math.min(C.MAX_DISCOVERY_POINTS, state.discoveryPoints + C.INTERNET_DISCOVERY_GAIN);

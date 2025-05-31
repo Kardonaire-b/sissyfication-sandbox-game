@@ -1,12 +1,10 @@
 import { state } from './state.js';
 import { el } from './domUtils.js';
 import { actions } from './actions.js';
-import { nextDay, initGameLogic } from './gameLogic.js'; // checkHormoneUnlock вызывается из actions
+import { nextDay } from './gameLogic.js';
 import { log, updateStats, updateTabsVisibility, updateProgressDisplay, renderChoices, renderWardrobeUI } from './ui.js';
 
 function initializeGame() {
-    initGameLogic(actions);
-
     updateTabsVisibility();
     updateProgressDisplay();
 
@@ -26,7 +24,7 @@ function initializeGame() {
                 renderWardrobeUI(); // Новая функция для вкладки "Гардероб"
             } else {
                 console.log("Вызов renderChoices из обработчика табов");
-                renderChoices(actions); // Для всех остальных вкладок
+                renderChoices(); // Для всех остальных вкладок
             }
         });
     });

@@ -1,3 +1,4 @@
+import { actions } from './actions.js';
 import { el } from './domUtils.js';
 import { state } from './state.js';
 import * as C from './config.js';
@@ -90,9 +91,9 @@ export function getCurrentOutfitDescription() {
             const connector = wornItemsDescriptions.length > 0 ? ", а под одеждой" : "Под одеждой";
             // Проверка, чтобы не дублировать "под одеждой", если уже есть и бюстгальтер и трусики
             if (!wornItemsDescriptions.some(desc => desc.includes("под одеждой"))) {
-                 wornItemsDescriptions.push(`${connector} у тебя ${item.name.toLowerCase()}`);
+                wornItemsDescriptions.push(`${connector} у тебя ${item.name.toLowerCase()}`);
             } else {
-                 wornItemsDescriptions.push(`и ${item.name.toLowerCase()}`);
+                wornItemsDescriptions.push(`и ${item.name.toLowerCase()}`);
             }
         }
     }
@@ -101,16 +102,16 @@ export function getCurrentOutfitDescription() {
         if (item) {
             const connector = wornItemsDescriptions.length > 0 ? ", а под одеждой" : "Под одеждой";
             if (!wornItemsDescriptions.some(desc => desc.includes("под одеждой"))) {
-                 wornItemsDescriptions.push(`${connector} у тебя ${item.name.toLowerCase()}`);
-            } else if (!outfit[CLOTHING_SLOTS.UNDERWEAR_TOP] && wornItemsDescriptions.length > 0){ // если нет бюстгальтера, но есть другая одежда
+                wornItemsDescriptions.push(`${connector} у тебя ${item.name.toLowerCase()}`);
+            } else if (!outfit[CLOTHING_SLOTS.UNDERWEAR_TOP] && wornItemsDescriptions.length > 0) { // если нет бюстгальтера, но есть другая одежда
                 wornItemsDescriptions.push(`${connector} у тебя ${item.name.toLowerCase()}`);
             }
             else { // если есть бюстгальтер или другая одежда, и это не первое упоминание белья
-                 wornItemsDescriptions.push(`и ${item.name.toLowerCase()}`);
+                wornItemsDescriptions.push(`и ${item.name.toLowerCase()}`);
             }
         }
     }
-    
+
     // Обувь
     if (outfit[CLOTHING_SLOTS.SHOES]) {
         const item = CLOTHING_ITEMS[outfit[CLOTHING_SLOTS.SHOES]];
@@ -128,7 +129,7 @@ export function getCurrentOutfitDescription() {
     // Собираем строку, делаем первую букву заглавной
     let finalDescription = wornItemsDescriptions.join(' ').trim();
     if (finalDescription.startsWith("и ")) finalDescription = finalDescription.substring(2); // Убираем начальное "и "
-    
+
     // Более аккуратное соединение для элементов белья, если они единственные "под одеждой"
     finalDescription = finalDescription.replace(", а под одеждой у тебя , и", ", а под одеждой у тебя также");
     finalDescription = finalDescription.replace("под одеждой у тебя и", "под одеждой у тебя также");
@@ -138,7 +139,7 @@ export function getCurrentOutfitDescription() {
     if (!finalDescription.endsWith('.') && !finalDescription.endsWith('!') && !finalDescription.endsWith('?')) {
         finalDescription += '.';
     }
-    
+
     return `👕 Наряд: ${finalDescription.charAt(0).toUpperCase() + finalDescription.slice(1)}`;
 }
 
@@ -154,9 +155,9 @@ export function updateBody() {
         lines.push("Ты продолжаешь исследовать себя и окружающий мир. Какие-то смутные желания и мысли иногда посещают тебя, но пока неясно, к чему они ведут.");
         lines.push(`Твои текущие ощущения: ${state.discoveryPoints > 15 ? "Любопытство растет, ты находишь все больше интересной информации." : "Обычный день, обычные мысли."}`);
         if (state.discoveryPoints > 0 && state.discoveryPoints < C.DISCOVERY_POINTS_TO_UNLOCK_HORMONES) {
-             lines.push(`Очки открытий: ${state.discoveryPoints}/${C.DISCOVERY_POINTS_TO_UNLOCK_HORMONES}`);
+            lines.push(`Очки открытий: ${state.discoveryPoints}/${C.DISCOVERY_POINTS_TO_UNLOCK_HORMONES}`);
         } else if (state.discoveryPoints >= C.DISCOVERY_POINTS_TO_UNLOCK_HORMONES) {
-             lines.push(`Кажется, ты на пороге важного открытия! (Очки открытий: ${state.discoveryPoints})`);
+            lines.push(`Кажется, ты на пороге важного открытия! (Очки открытий: ${state.discoveryPoints})`);
         }
     } else {
         // Голос
@@ -173,7 +174,7 @@ export function updateBody() {
         if (E_is_dominant && E > C.SKIN_E_DOMINANT_THRESHOLD_FOR_SOFTNESS) {
             skinDesc += P > C.SKIN_P_THRESHOLD_SOFT_2 ? "Невероятно гладкая, шелковистая на ощупь, поры почти невидимы. Лёгкий румянец." :
                 P > C.SKIN_P_THRESHOLD_SOFT_1 ? "Становится ощутимо мягче, нежнее, уходит жирный блеск." :
-                "Появляется мягкость, менее жирная.";
+                    "Появляется мягкость, менее жирная.";
             if (E > C.SKIN_E_THRESHOLD_FOR_THINNING && P > C.SKIN_P_THRESHOLD_FOR_THINNING) skinDesc += " Кажется тоньше, венки на запястьях и груди могут быть видны отчетливее.";
         } else if (T_is_dominant && T > C.SKIN_T_DOMINANT_THRESHOLD_FOR_ROUGHNESS) {
             skinDesc += "Плотная, возможно, более склонная к жирности и акне. Поры заметны.";
@@ -272,8 +273,8 @@ export function updateBody() {
 }
 
 export function renderWardrobeUI() {
-    console.log("renderWardrobeUI: Начало. state.currentOutfit:", 
-        JSON.parse(JSON.stringify(state.currentOutfit)), "state.ownedClothes:", 
+    console.log("renderWardrobeUI: Начало. state.currentOutfit:",
+        JSON.parse(JSON.stringify(state.currentOutfit)), "state.ownedClothes:",
         JSON.parse(JSON.stringify(state.ownedClothes)));
     el.choices.innerHTML = ''; // Очищаем контейнер для кнопок действий
 
@@ -297,7 +298,7 @@ export function renderWardrobeUI() {
             const item = CLOTHING_ITEMS[itemId];
             const itemDiv = document.createElement('div');
             itemDiv.className = 'wardrobe-item-display';
-            
+
             const itemName = document.createElement('span');
             itemName.textContent = `${item.name} (слот: ${slot})`; // Показываем и слот для ясности
             itemDiv.appendChild(itemName);
@@ -307,7 +308,7 @@ export function renderWardrobeUI() {
             unequipButton.className = 'choice-button wardrobe-button'; // Добавляем класс для стилизации, если нужно
             unequipButton.onclick = () => unequipItem(slot);
             itemDiv.appendChild(unequipButton);
-            
+
             equippedSection.appendChild(itemDiv);
         }
     }
@@ -352,33 +353,30 @@ export function renderWardrobeUI() {
         }
     });
 
-    if (!anythingInClosetToWear && state.ownedClothes.length === currentlyWornItemIds.length && state.ownedClothes.length > 0) {
-         console.log("renderWardrobeUI: Вся доступная одежда уже надета.");
-         const p = document.createElement('p');
-         p.textContent = 'Вся доступная одежда уже надета или в шкафу пусто.';
-         ownedSection.appendChild(p);
-    } else if (state.ownedClothes.length === 0) {
+    if (state.ownedClothes.length === 0) {
+        // Если в собственности вообще нет одежды
         console.log("renderWardrobeUI: Шкаф пуст.");
         const p = document.createElement('p');
         p.textContent = 'В шкафу пока пусто.';
         ownedSection.appendChild(p);
-    } else if (!anythingInClosetToWear && state.ownedClothes.length > 0) { // Если есть вещи, но все надеты
-        console.log("renderWardrobeUI: В шкафу есть вещи, но все они сейчас надеты (или для них нет места).");
-        // Тут можно тоже какое-то сообщение вывести, если это не покрывается предыдущим.
-        // Или предыдущее условие "Вся доступная одежда уже надета" должно это покрыть.
+    } else if (!anythingInClosetToWear) {
+        // Если одежда в собственности есть, но вся она уже надета
+        // (т.е. не нашлось ни одного предмета, который можно было бы добавить в список "Надеть")
+        console.log("renderWardrobeUI: Вся доступная одежда уже надета.");
+        const p = document.createElement('p');
+        p.textContent = 'Вся доступная одежда уже надета.';
+        ownedSection.appendChild(p);
     }
 
-
-    wardrobeContainer.appendChild(equippedSection);
     wardrobeContainer.appendChild(ownedSection);
     el.choices.appendChild(wardrobeContainer);
     console.log("renderWardrobeUI: Конец отрисовки, wardrobeContainer добавлен в el.choices");
 }
 
-export function renderChoices(actionsArray) {
+export function renderChoices() {
     console.log("renderChoices: Начало отрисовки кнопок действий");
     el.choices.innerHTML = '';
-    actionsArray.filter(action => {
+    actions.filter(action => {
         if (action.tab === 'hormone' && !state.hormonesUnlocked) {
             return false;
         }
@@ -392,7 +390,6 @@ export function renderChoices(actionsArray) {
         b.className = 'choice-button';
 
         let baseText = typeof action.text === 'function' ? action.text() : action.text;
-        let currentText = '';
         let icon = '';
 
         // Иконки на основе ID действия
@@ -402,22 +399,11 @@ export function renderChoices(actionsArray) {
             case 't_pill': icon = '♂️ '; break;
             case 'e_pill': icon = '♀️ '; break;
             case 'read_book': icon = state.hormonesUnlocked ? '📖 ' : '📚 '; break;
-            case 'browse_internet': icon = '🌐 '; break; // Теперь это основной источник иконки
+            case 'browse_internet': icon = '🌐 '; break;
             case 'rest': icon = '😴 '; break;
-            // default: можно оставить пустым, если мы уверены, что все actions имеют ID
-            // и соответствующий case. Если нет, можно добавить резервную логику
-            // или выводить предупреждение о неизвестном action.id
         }
 
-        currentText = icon + baseText; // Простое присвоение иконки и текста
-
-        // Убедимся, что у "Искать информацию" иконка есть, если она не в action.text
-        if (action.id === 'browse_internet' && !baseText.startsWith('🌐')) {
-            currentText = '🌐 ' + baseText;
-        } else {
-            currentText = icon + baseText;
-        }
-
+        let currentText = icon + baseText; // Простое присвоение иконки и текста
 
         let isDisabled = false;
         if (action.cost > 0 && state.money < action.cost) {
@@ -446,7 +432,7 @@ export function renderChoices(actionsArray) {
     });
 }
 
-export function updateStats(actionsArray) { // Принимает actionsArray для передачи в renderChoices
+export function updateStats() {
     el.day.textContent = state.day;
     el.money.textContent = state.money + C.CURRENCY_SYMBOL;
     el.test.textContent = state.testosterone.toFixed(0);
@@ -462,18 +448,11 @@ export function updateStats(actionsArray) { // Принимает actionsArray �
 
     console.log(`updateStats: Текущая вкладка state.tab = '${state.tab}'`);
 
-    // Проверяем текущую активную вкладку и вызываем соответствующую функцию рендеринга
     if (state.tab === 'wardrobe') {
         console.log("Вызов renderWardrobeUI из updateStats");
-        renderWardrobeUI(); // Если активна вкладка "Гардероб", перерисовываем её
-    } else if (actionsArray) { // Убедимся, что actionsArray передан для других вкладок
-        renderChoices(actionsArray); // Для остальных вкладок перерисовываем кнопки действий
-    } else if (!actionsArray && state.tab !== 'wardrobe') {
-        // Этого не должно происходить, если actionsArray всегда передается, когда он нужен.
-        // Очищаем choices, чтобы не оставалось старых кнопок, если что-то пошло не так.
-        console.warn(`updateStats вызван для вкладки ${state.tab} без actionsArray.`);
-        el.choices.innerHTML = '';
+        renderWardrobeUI();
+    } else { // Для других вкладок
+        console.log("Вызов renderChoices из updateStats для другой вкладки");
+        renderChoices(); // Вызов без аргумента
     }
-
-    renderChoices(actionsArray); // Передаем actionsArray
 }

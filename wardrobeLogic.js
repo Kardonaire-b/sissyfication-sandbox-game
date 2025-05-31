@@ -1,7 +1,6 @@
 import { state } from './state.js';
 import { CLOTHING_ITEMS, CLOTHING_SLOTS } from './wardrobeConfig.js';
 import { updateStats } from './ui.js'; // Понадобится для обновления UI после действий
-import { gameActionsRef } from './gameLogic.js'; // Получаем ссылку на actions из gameLogic
 
 export function equipItem(itemId) {
     console.log(`wardrobeLogic: equipItem вызван. Текущий state.tab = '${state.tab}'`);
@@ -50,11 +49,8 @@ export function equipItem(itemId) {
     // TODO: Добавить/обновить state.totalFeelingBonus или подобное, если есть feelingBonus у предмета
 
     console.log('Текущий наряд:', JSON.parse(JSON.stringify(state.currentOutfit)));
-    if (gameActionsRef) {
-        updateStats(gameActionsRef);
-    } else {
-        console.error("gameActionsRef не определен в wardrobeLogic. Не могу обновить статы.");
-    }
+    
+    updateStats();
 }
 
 // Внутренняя функция для снятия без полного обновления UI (используется для разрешения конфликтов)
@@ -83,10 +79,5 @@ export function unequipItem(slotToUnequip) {
     // TODO: Можно добавить логику авто-надевания базовой одежды, если это необходимо.
     // Например, если сняли последнюю футболку, надеть стартовую мужскую, если нечего больше.
 
-    console.log('Текущий наряд после снятия:', JSON.parse(JSON.stringify(state.currentOutfit)));
-     if (gameActionsRef) {
-        updateStats(gameActionsRef);
-    } else {
-        console.error("gameActionsRef не определен в wardrobeLogic. Не могу обновить статы.");
-    }
+    updateStats();
 }

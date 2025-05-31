@@ -2,12 +2,6 @@ import { state } from './state.js';
 import * as C from './config.js';
 import { log, updateTabsVisibility, updateProgressDisplay, updateStats } from './ui.js';
 
-export let gameActionsRef;
-
-export function initGameLogic(actionsArray) {
-    gameActionsRef = actionsArray;
-}
-
 export function checkHormoneUnlock() {
     if (!state.hormonesUnlocked && state.discoveryPoints >= C.DISCOVERY_POINTS_TO_UNLOCK_HORMONES) {
         state.hormonesUnlocked = true;
@@ -22,10 +16,6 @@ export function checkHormoneUnlock() {
 }
 
 export function nextDay() {
-    if (!gameActionsRef) {
-        console.error("gameLogic не инициализирован с массивом actions. Вызовите initGameLogic(actions) в main.js.");
-        return;
-    }
     state.day++;
 
     if (state.t_blocker_active_days > 0) {
@@ -49,5 +39,5 @@ export function nextDay() {
     state.emaT = C.EMA_ALPHA * state.testosterone + (1 - C.EMA_ALPHA) * state.emaT;
     state.emaE = C.EMA_ALPHA * state.estrogen + (1 - C.EMA_ALPHA) * state.emaE;
 
-    updateStats(gameActionsRef); // Передаем ссылку на actions для полной перерисовки UI
+    updateStats();
 }
