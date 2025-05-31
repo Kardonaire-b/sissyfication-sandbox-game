@@ -2,15 +2,13 @@ import { state } from './state.js';
 import { el } from './domUtils.js';
 import { actions } from './actions.js';
 import { nextDay, initGameLogic } from './gameLogic.js'; // checkHormoneUnlock вызывается из actions
-import { log, updateStats, updateTabsVisibility, updateProgressDisplay, renderChoices } from './ui.js';
+import { log, updateStats, updateTabsVisibility, updateProgressDisplay, renderChoices, renderWardrobeUI } from './ui.js';
 
 function initializeGame() {
-    initGameLogic(actions); // Инициализируем gameLogic ссылкой на actions
+    initGameLogic(actions);
 
-    // Начальная настройка UI до первого вызова nextDay
     updateTabsVisibility();
     updateProgressDisplay();
-    // renderChoices(actions); // Первичная отрисовка кнопок для активного таба 'income'
 
     el.tabs.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -18,15 +16,27 @@ function initializeGame() {
 
             state.tab = btn.dataset.tab;
             el.tabs.forEach(b => b.classList.toggle('selected', b === btn));
-            renderChoices(actions); // Перерисовываем кнопки для нового активного таба
+
+            // В зависимости от вкладки, вызываем нужную функцию рендеринга
+            if (state.tab === 'wardrobe') {
+                renderWardrobeUI(); // Новая функция для вкладки "Гардероб"
+            } else {
+                renderChoices(actions); // Для всех остальных вкладок
+            }
         });
     });
 
-    // Первый "игровой день" и начальное сообщение
-    nextDay(); // Это вызовет updateStats(actions), который сделает все нужные обновления UI
+    nextDay();
     log("✨ Ты стоишь на пороге чего-то нового... ✨ Что будешь делать?", 'important');
-    // Если в первый день не должно быть сообщения о блокаторе (если он был бы активен с дня 0)
-    // то первое сообщение лога можно поместить после nextDay(). Текущий порядок нормальный.
+
+    // Начальная отрисовка кнопок для активной вкладки 'income' после первого nextDay
+    // Это важно, если nextDay() не перерисовывает choices сам по себе при первой загрузке
+    // или если активный таб по умолчанию не 'income'
+    if (state.tab === 'income') { // или любой другой таб по умолчанию, где есть actions
+        renderChoices(actions);
+    } else if (state.tab === 'wardrobe') {
+        renderWardrobeUI();
+    }
 }
 
 // Запускаем игру после полной загрузки DOM

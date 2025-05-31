@@ -1,6 +1,9 @@
 import { el } from './domUtils.js';
 import { state } from './state.js';
 import * as C from './config.js';
+import { CLOTHING_ITEMS, CLOTHING_SLOTS } from './wardrobeConfig.js';
+import { equipItem, unequipItem } from './wardrobeLogic.js';
+
 
 export function log(msg, type = 'default') {
     el.actionLogOutput.textContent = msg;
@@ -45,6 +48,100 @@ export function updateProgressDisplay() {
         el.pbar.style.width = (state.progress / C.MAX_PROGRESS * 100) + '%';
     }
 }
+
+export function getCurrentOutfitDescription() {
+    const outfit = state.currentOutfit;
+    const wornItemsDescriptions = [];
+    let hasFullBody = false;
+
+    // Сначала проверяем, есть ли full_body одежда, она имеет приоритет в описании
+    if (outfit[CLOTHING_SLOTS.FULL_BODY]) {
+        const item = CLOTHING_ITEMS[outfit[CLOTHING_SLOTS.FULL_BODY]];
+        if (item) {
+            wornItemsDescriptions.push(`ты полностью одета в: ${item.name.toLowerCase()}`);
+            hasFullBody = true;
+        }
+    }
+
+    // Если нет full_body, описываем верх и низ
+    if (!hasFullBody) {
+        if (outfit[CLOTHING_SLOTS.TOP]) {
+            const item = CLOTHING_ITEMS[outfit[CLOTHING_SLOTS.TOP]];
+            if (item) wornItemsDescriptions.push(`на тебе надета ${item.name.toLowerCase()}`);
+        }
+        if (outfit[CLOTHING_SLOTS.BOTTOM]) {
+            const item = CLOTHING_ITEMS[outfit[CLOTHING_SLOTS.BOTTOM]];
+            if (item) {
+                if (wornItemsDescriptions.length > 0 && outfit[CLOTHING_SLOTS.TOP]) { // Если уже есть описание верха
+                    wornItemsDescriptions.push(`и ${item.name.toLowerCase()}`);
+                } else {
+                    wornItemsDescriptions.push(`на тебе надета ${item.name.toLowerCase()}`);
+                }
+            }
+        }
+    }
+
+    // Описываем нижнее белье, если оно есть и не скрыто full_body одеждой (или если мы хотим его всегда упоминать)
+    // Для простоты пока будем упоминать, если надето.
+    // Более сложная логика может учитывать, видно ли белье.
+    if (outfit[CLOTHING_SLOTS.UNDERWEAR_TOP]) {
+        const item = CLOTHING_ITEMS[outfit[CLOTHING_SLOTS.UNDERWEAR_TOP]];
+        if (item) {
+            const connector = wornItemsDescriptions.length > 0 ? ", а под одеждой" : "Под одеждой";
+            // Проверка, чтобы не дублировать "под одеждой", если уже есть и бюстгальтер и трусики
+            if (!wornItemsDescriptions.some(desc => desc.includes("под одеждой"))) {
+                 wornItemsDescriptions.push(`${connector} у тебя ${item.name.toLowerCase()}`);
+            } else {
+                 wornItemsDescriptions.push(`и ${item.name.toLowerCase()}`);
+            }
+        }
+    }
+    if (outfit[CLOTHING_SLOTS.UNDERWEAR_BOTTOM]) {
+        const item = CLOTHING_ITEMS[outfit[CLOTHING_SLOTS.UNDERWEAR_BOTTOM]];
+        if (item) {
+            const connector = wornItemsDescriptions.length > 0 ? ", а под одеждой" : "Под одеждой";
+            if (!wornItemsDescriptions.some(desc => desc.includes("под одеждой"))) {
+                 wornItemsDescriptions.push(`${connector} у тебя ${item.name.toLowerCase()}`);
+            } else if (!outfit[CLOTHING_SLOTS.UNDERWEAR_TOP] && wornItemsDescriptions.length > 0){ // если нет бюстгальтера, но есть другая одежда
+                wornItemsDescriptions.push(`${connector} у тебя ${item.name.toLowerCase()}`);
+            }
+            else { // если есть бюстгальтер или другая одежда, и это не первое упоминание белья
+                 wornItemsDescriptions.push(`и ${item.name.toLowerCase()}`);
+            }
+        }
+    }
+    
+    // Обувь
+    if (outfit[CLOTHING_SLOTS.SHOES]) {
+        const item = CLOTHING_ITEMS[outfit[CLOTHING_SLOTS.SHOES]];
+        if (item) {
+            const connector = wornItemsDescriptions.length > 0 ? ", на ногах - " : "На ногах - ";
+            wornItemsDescriptions.push(`${connector}${item.name.toLowerCase()}`);
+        }
+    }
+
+
+    if (wornItemsDescriptions.length === 0) {
+        return "👕 Наряд: Ты сейчас ни во что не одета."; // Или "Ты в своей обычной домашней одежде."
+    }
+
+    // Собираем строку, делаем первую букву заглавной
+    let finalDescription = wornItemsDescriptions.join(' ').trim();
+    if (finalDescription.startsWith("и ")) finalDescription = finalDescription.substring(2); // Убираем начальное "и "
+    
+    // Более аккуратное соединение для элементов белья, если они единственные "под одеждой"
+    finalDescription = finalDescription.replace(", а под одеждой у тебя , и", ", а под одеждой у тебя также");
+    finalDescription = finalDescription.replace("под одеждой у тебя и", "под одеждой у тебя также");
+
+
+    // Добавляем точку в конце, если ее нет
+    if (!finalDescription.endsWith('.') && !finalDescription.endsWith('!') && !finalDescription.endsWith('?')) {
+        finalDescription += '.';
+    }
+    
+    return `👕 Наряд: ${finalDescription.charAt(0).toUpperCase() + finalDescription.slice(1)}`;
+}
+
 
 export function updateBody() {
     const T = state.emaT, E = state.emaE, P = state.hormonesUnlocked ? state.progress : 0;
@@ -168,8 +265,98 @@ export function updateBody() {
         else if (P > C.FEELING_P_THRESHOLD_FIRST_WHISPERS) feelingDesc += "Первые шепоты изменений. Тело меняется, это волнует.";
         else feelingDesc += "Самое начало пути. Ветерок перемен едва коснулся.";
         lines.push(feelingDesc);
+        // Наряд
+        lines.push(getCurrentOutfitDescription());
     }
     el.bodyDesc.textContent = lines.join('\n\n');
+}
+
+export function renderWardrobeUI() {
+    el.choices.innerHTML = ''; // Очищаем контейнер для кнопок действий
+
+    const wardrobeContainer = document.createElement('div');
+    wardrobeContainer.id = 'wardrobe-interface';
+
+    // --- Секция "Сейчас надето" ---
+    const equippedSection = document.createElement('div');
+    equippedSection.className = 'wardrobe-section';
+    const equippedTitle = document.createElement('h3');
+    equippedTitle.textContent = 'Сейчас надето:';
+    equippedSection.appendChild(equippedTitle);
+
+    let anythingEquipped = false;
+    for (const slot in state.currentOutfit) {
+        const itemId = state.currentOutfit[slot];
+        if (itemId) {
+            anythingEquipped = true;
+            const item = CLOTHING_ITEMS[itemId];
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'wardrobe-item-display';
+            
+            const itemName = document.createElement('span');
+            itemName.textContent = `${item.name} (слот: ${slot})`; // Показываем и слот для ясности
+            itemDiv.appendChild(itemName);
+
+            const unequipButton = document.createElement('button');
+            unequipButton.textContent = 'Снять';
+            unequipButton.className = 'choice-button wardrobe-button'; // Добавляем класс для стилизации, если нужно
+            unequipButton.onclick = () => unequipItem(slot);
+            itemDiv.appendChild(unequipButton);
+            
+            equippedSection.appendChild(itemDiv);
+        }
+    }
+    if (!anythingEquipped) {
+        const p = document.createElement('p');
+        p.textContent = 'Ничего не надето.';
+        equippedSection.appendChild(p);
+    }
+    wardrobeContainer.appendChild(equippedSection);
+
+    // --- Секция "В шкафу" (доступные для надевания) ---
+    const ownedSection = document.createElement('div');
+    ownedSection.className = 'wardrobe-section';
+    const ownedTitle = document.createElement('h3');
+    ownedTitle.textContent = 'В шкафу:';
+    ownedSection.appendChild(ownedTitle);
+
+    let anythingInClosetToWear = false;
+    const currentlyWornItemIds = Object.values(state.currentOutfit).filter(id => id !== null);
+
+    state.ownedClothes.forEach(itemId => {
+        if (!currentlyWornItemIds.includes(itemId)) { // Показываем только то, что не надето
+            anythingInClosetToWear = true;
+            const item = CLOTHING_ITEMS[itemId];
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'wardrobe-item-display';
+
+            const itemName = document.createElement('span');
+            itemName.textContent = `${item.name} (слот: ${item.slot})`;
+            itemDiv.appendChild(itemName);
+
+            const equipButton = document.createElement('button');
+            equipButton.textContent = 'Надеть';
+            equipButton.className = 'choice-button wardrobe-button';
+            equipButton.onclick = () => equipItem(itemId);
+            itemDiv.appendChild(equipButton);
+
+            ownedSection.appendChild(itemDiv);
+        }
+    });
+
+    if (!anythingInClosetToWear && state.ownedClothes.length === currentlyWornItemIds.length) {
+         const p = document.createElement('p');
+         p.textContent = 'Вся доступная одежда уже надета или в шкафу пусто.';
+         ownedSection.appendChild(p);
+    } else if (state.ownedClothes.length === 0) {
+        const p = document.createElement('p');
+        p.textContent = 'В шкафу пока пусто.';
+        ownedSection.appendChild(p);
+    }
+
+
+    wardrobeContainer.appendChild(ownedSection);
+    el.choices.appendChild(wardrobeContainer);
 }
 
 export function renderChoices(actionsArray) {
