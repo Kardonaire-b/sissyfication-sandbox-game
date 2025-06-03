@@ -1,5 +1,3 @@
-// File: wardrobeConfig.js
-
 export const CLOTHING_SLOTS = {
     FULL_BODY: 'full_body',         // Для цельных нарядов, как платья или стартовая мужская одежда (если она одним комплектом)
     TOP: 'top',                     // Футболки, блузки, свитера

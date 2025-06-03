@@ -1,8 +1,8 @@
+/* Основные стили приложения */
 body {
   background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
   color: #eee;
   font-family: 'Nunito', 'Segoe UI', sans-serif;
-  /* Новый базовый шрифт */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -18,10 +18,9 @@ body {
 }
 
 .log-entry {
-    padding: 2px 0; /* Небольшой отступ между сообщениями */
-    /* Можно добавить transition для плавного появления/исчезания, если заморачиваться */
-    font-size: 0.9em; /* Чуть меньше, если лог будет плотным */
-    opacity: 0.85; /* Старые сообщения чуть бледнее */
+    padding: 2px 0; /* небольшой отступ между сообщениями */
+    font-size: 0.9em;
+    opacity: 0.85; /* старые сообщения чуть бледнее */
 }
 .log-entry:first-child { /* Самое свежее сообщение */
     opacity: 1;
