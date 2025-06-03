@@ -41,7 +41,7 @@ function initializeGame() {
             }
         });
     }
-     // Закрытие модалки по Escape
+    // Закрытие модалки по Escape
     document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape' && el.modalOverlay && el.modalOverlay.classList.contains('active')) {
             closeBodyDetailsModal();
@@ -50,7 +50,11 @@ function initializeGame() {
 
 
     nextDay();
-    log("✨ Ты стоишь на пороге чего-то нового... ✨ Что будешь делать?", 'important');
+    if (state.logMessages.length === 0) { // Если лог пуст (например, новая игра)
+        log("✨ Ты стоишь на пороге чего-то нового... ✨ Что будешь делать?", 'important');
+    } else { // Если игра загружена и лог уже есть
+        renderLog(); // Нужно вызвать рендер лога, чтобы отобразить загруженные сообщения
+    }
 }
 
 // Запускаем игру после полной загрузки DOM

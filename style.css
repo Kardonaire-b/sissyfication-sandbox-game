@@ -13,6 +13,43 @@ body {
   box-sizing: border-box;
 }
 
+#action-log-output ul {
+    text-align: left;
+}
+
+.log-entry {
+    padding: 2px 0; /* Небольшой отступ между сообщениями */
+    /* Можно добавить transition для плавного появления/исчезания, если заморачиваться */
+    font-size: 0.9em; /* Чуть меньше, если лог будет плотным */
+    opacity: 0.85; /* Старые сообщения чуть бледнее */
+}
+.log-entry:first-child { /* Самое свежее сообщение */
+    opacity: 1;
+    font-weight: bold; /* Выделить самое свежее */
+}
+.log-entry.log-money-gain {
+  color: #a1ffb6;
+  /* background-color не нужен, если фон применяется к #action-log-output */
+}
+.log-entry.log-important {
+  font-weight: bold;
+  color: #ffc869;
+}
+
+@keyframes fadeInLogEntry {
+  from {
+    opacity: 0.6;
+    transform: translateY(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.log-entry.log-updated {
+  animation: fadeInLogEntry 0.3s ease-out;
+}
+
 #game-container {
   max-width: 800px;
   width: 100%;
