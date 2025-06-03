@@ -5,18 +5,17 @@ import * as C from './config.js';
 import { CLOTHING_ITEMS, CLOTHING_SLOTS } from './wardrobeConfig.js';
 import { equipItem, unequipItem } from './wardrobeLogic.js';
 
-let fullBodyDescriptionForModalStore = ""; // Переменная для хранения полного описания
-let choiceButtonCache = {}; // Cache for action button elements: { action.id: { buttonElement: HTMLButtonElement } }
+let fullBodyDescriptionForModalStore = "";
+let choiceButtonCache = {};
 
 
 export function log(msg, type = 'default') {
     el.actionLogOutput.textContent = msg;
-    // Сначала сбросим все классы типов, кроме базового и log-updated (если он есть)
     const classesToRemove = Array.from(el.actionLogOutput.classList).filter(
         cls => cls.startsWith('log-') && cls !== 'log-default' && cls !== 'log-updated'
     );
     el.actionLogOutput.classList.remove(...classesToRemove);
-    el.actionLogOutput.classList.add('log-default'); // Убедимся, что log-default есть, если нет спец. типа
+    el.actionLogOutput.classList.add('log-default');
 
     if (type === 'money-gain') el.actionLogOutput.classList.replace('log-default','log-money-gain');
     else if (type === 'money-loss') el.actionLogOutput.classList.replace('log-default','log-money-loss');
@@ -25,12 +24,10 @@ export function log(msg, type = 'default') {
     else if (type === 'discovery') el.actionLogOutput.classList.replace('log-default','log-discovery');
     else if (type === 'important') el.actionLogOutput.classList.replace('log-default','log-important');
 
-    // Анимация при обновлении
     el.actionLogOutput.classList.add('log-updated');
-    // Удаляем класс анимации после её завершения, чтобы она могла сработать снова
     setTimeout(() => {
         el.actionLogOutput.classList.remove('log-updated');
-    }, 300); // Должно совпадать с длительностью анимации в CSS
+    }, 300);
 }
 
 
@@ -43,11 +40,10 @@ export function updateTabsVisibility() {
 
             if (!isHormoneTabVisible && state.tab === 'hormone') {
                 state.tab = 'income';
-                tabSwitched = true; // Флаг, что таб был переключен
+                tabSwitched = true;
             }
         }
     });
-    // Если таб был переключен, обновить выделение
     if (tabSwitched) {
         el.tabs.forEach(tb => tb.classList.toggle('selected', tb.dataset.tab === state.tab));
     }
@@ -57,12 +53,12 @@ export function updateProgressDisplay() {
     if (!state.hormonesUnlocked) {
         el.progressTitle.textContent = "Открытия";
         el.progressIcon.textContent = "💡";
-        el.prog.textContent = `${state.discoveryPoints} / ${C.MAX_DISCOVERY_POINTS}`; // Добавлено / MAX
+        el.prog.textContent = `${state.discoveryPoints} / ${C.MAX_DISCOVERY_POINTS}`;
         el.pbar.style.width = (state.discoveryPoints / C.MAX_DISCOVERY_POINTS * 100) + '%';
     } else {
         el.progressTitle.textContent = "Прогресс";
         el.progressIcon.textContent = "📈";
-        el.prog.textContent = `${state.progress}% / ${C.MAX_PROGRESS}%`; // Добавлено / MAX
+        el.prog.textContent = `${state.progress}% / ${C.MAX_PROGRESS}%`;
         el.pbar.style.width = (state.progress / C.MAX_PROGRESS * 100) + '%';
     }
 }
@@ -72,7 +68,6 @@ export function getCurrentOutfitDescription() {
     const wornItemsDescriptions = [];
     let hasFullBody = false;
 
-    // Сначала проверяем, есть ли full_body одежда, она имеет приоритет в описании
     if (outfit[CLOTHING_SLOTS.FULL_BODY]) {
         const item = CLOTHING_ITEMS[outfit[CLOTHING_SLOTS.FULL_BODY]];
         if (item) {
@@ -81,7 +76,6 @@ export function getCurrentOutfitDescription() {
         }
     }
 
-    // Если нет full_body, описываем верх и низ
     if (!hasFullBody) {
         if (outfit[CLOTHING_SLOTS.TOP]) {
             const item = CLOTHING_ITEMS[outfit[CLOTHING_SLOTS.TOP]];
@@ -90,7 +84,7 @@ export function getCurrentOutfitDescription() {
         if (outfit[CLOTHING_SLOTS.BOTTOM]) {
             const item = CLOTHING_ITEMS[outfit[CLOTHING_SLOTS.BOTTOM]];
             if (item) {
-                if (wornItemsDescriptions.length > 0 && outfit[CLOTHING_SLOTS.TOP]) { // Если уже есть описание верха
+                if (wornItemsDescriptions.length > 0 && outfit[CLOTHING_SLOTS.TOP]) {
                     wornItemsDescriptions.push(`и ${item.name.toLowerCase()}`);
                 } else {
                     wornItemsDescriptions.push(`на тебе надета ${item.name.toLowerCase()}`);
@@ -113,14 +107,13 @@ export function getCurrentOutfitDescription() {
         let underwearString = "";
         if (underwearDescriptions.length === 1) {
             underwearString = underwearDescriptions[0];
-        } else { // 2 и более элементов
+        } else {
             underwearString = underwearDescriptions.slice(0, -1).join(', ') + ' и ' + underwearDescriptions.slice(-1);
         }
         const connector = wornItemsDescriptions.length > 0 ? ", а под одеждой" : "Под одеждой";
         wornItemsDescriptions.push(`${connector} у тебя ${underwearString}`);
     }
     
-    // Обувь
     if (outfit[CLOTHING_SLOTS.SHOES]) {
         const item = CLOTHING_ITEMS[outfit[CLOTHING_SLOTS.SHOES]];
         if (item) {
@@ -129,13 +122,11 @@ export function getCurrentOutfitDescription() {
         }
     }
 
-
     if (wornItemsDescriptions.length === 0) {
         return "👕 Наряд: Ты сейчас ни во что не одета."; 
     }
 
     let finalDescription = wornItemsDescriptions.join(' ').trim();
-    // Убираем возможное начальное "и " или ", ", если первый элемент был опциональным и не сработал
     if (finalDescription.startsWith("и ")) finalDescription = finalDescription.substring(2).trim();
     if (finalDescription.startsWith(", ")) finalDescription = finalDescription.substring(1).trim();
     
@@ -146,16 +137,14 @@ export function getCurrentOutfitDescription() {
     return `👕 Наряд: ${finalDescription.charAt(0).toUpperCase() + finalDescription.slice(1)}`;
 }
 
-
-
 export function updateBody() {
     const T = state.emaT, E = state.emaE, P = state.hormonesUnlocked ? state.progress : 0;
     const T_is_dominant = T > E + 10;
     const E_is_dominant = E > T + 5;
     const hormonalBalanceFactor = Math.max(0, Math.min(100, (E - T + C.MAX_HORMONE_LEVEL) / 2));
 
-    let allBodyLines = []; // Для полного описания в модальное окно
-    state.recentBodyChanges = []; // Очищаем перед заполнением
+    let allBodyLines = []; 
+    state.recentBodyChanges = []; 
 
     if (!state.hormonesUnlocked) {
         let preUnlockLines = [];
@@ -166,14 +155,11 @@ export function updateBody() {
         } else if (state.discoveryPoints >= C.DISCOVERY_POINTS_TO_UNLOCK_HORMONES && !state.hormonesUnlocked) {
             preUnlockLines.push(`Кажется, ты на пороге важного открытия! (Очки открытий: ${state.discoveryPoints})`);
         }
-        // Для неразблокированного состояния, все строки идут в основное описание
         el.bodyDesc.textContent = preUnlockLines.join('\n\n');
-        fullBodyDescriptionForModalStore = preUnlockLines.join('\n\n'); // И в модалку тоже самое на всякий
-        return; // Выходим, дальше обработка для разблокированных гормонов
+        fullBodyDescriptionForModalStore = preUnlockLines.join('\n\n'); 
+        return; 
     }
 
-    // --- Генерация описаний для каждого параметра ---
-    // Голос
     let voicePitch = C.VOICE_PITCH_BASE_HZ - (T - E) * C.VOICE_PITCH_HORMONE_FACTOR;
     voicePitch = Math.max(80, Math.min(300, voicePitch));
     let voiceDescText = `🎤 Голос: ${voicePitch.toFixed(0)} Гц. `;
@@ -183,9 +169,7 @@ export function updateBody() {
     else voiceDescText += "Тембр на грани, андрогинный, интригующий.";
     allBodyLines.push(generateBodyParameterDescription('voice', voiceDescText, state.previousBodyParams.voice, state.recentBodyChanges));
 
-    // Кожа
     let skinDescText = "💧 Кожа: ";
-    // ... (вся логика для skinDescText, как было раньше) ...
      if (E_is_dominant && E > C.SKIN_E_DOMINANT_THRESHOLD_FOR_SOFTNESS) {
             skinDescText += P > C.SKIN_P_THRESHOLD_SOFT_2 ? "Невероятно гладкая, шелковистая на ощупь, поры почти невидимы. Лёгкий румянец." :
                 P > C.SKIN_P_THRESHOLD_SOFT_1 ? "Становится ощутимо мягче, нежнее, уходит жирный блеск." :
@@ -198,9 +182,7 @@ export function updateBody() {
         }
     allBodyLines.push(generateBodyParameterDescription('skin', skinDescText, state.previousBodyParams.skin, state.recentBodyChanges));
 
-    // Волосы на теле/лице
     let bodyHairDescText = "🌿 Волосы на теле/лице: ";
-    // ... (вся логика для bodyHairDescText) ...
     if (E_is_dominant && E > C.BODYHAIR_E_DOMINANT_THRESHOLD_FOR_REDUCTION && P > C.BODYHAIR_P_THRESHOLD_FOR_REDUCTION) {
             bodyHairDescText += "Рост волос на теле замедлился, они стали тоньше и светлее. ";
             if (T < C.BODYHAIR_T_THRESHOLD_FOR_FACIAL_PUBESCENCE && P > C.BODYHAIR_P_THRESHOLD_FOR_FACIAL_PUBESCENCE) bodyHairDescText += "Щетина на лице почти не растет, или стала пушковой.";
@@ -212,9 +194,7 @@ export function updateBody() {
         }
     allBodyLines.push(generateBodyParameterDescription('bodyHair', bodyHairDescText, state.previousBodyParams.bodyHair, state.recentBodyChanges));
 
-    // Грудь
     let breastDescText = "🍈 Грудь: ";
-    // ... (вся логика для breastDescText) ...
         let breastDevStageRaw = 0;
         if (E > C.BREAST_E_THRESHOLD_START_BUDDING && P > C.BREAST_P_THRESHOLD_START_BUDDING) {
             breastDevStageRaw = 1 + (Math.max(0, E - C.BREAST_E_THRESHOLD_START_BUDDING) / C.BREAST_E_UNITS_PER_STAGE) *
@@ -228,9 +208,7 @@ export function updateBody() {
         else breastDescText += `Пышная, мягкая, соблазнительная (размер C+!). (E:${E.toFixed(0)}, P:${P}%).`;
     allBodyLines.push(generateBodyParameterDescription('breast', breastDescText, state.previousBodyParams.breast, state.recentBodyChanges));
 
-    // Фигура и Жир
     let figureDescText = "🍑 Фигура: ";
-    // ... (вся логика для figureDescText) ...
         const whr_change_potential = C.FIGURE_WHR_BASE - C.FIGURE_WHR_TARGET_FEMALE;
         let whr_progress_to_female_target = 0;
         if (E_is_dominant && E > C.FIGURE_E_DOMINANT_THRESHOLD_FOR_WHR_CHANGE) {
@@ -247,16 +225,13 @@ export function updateBody() {
         }
     allBodyLines.push(generateBodyParameterDescription('figure', figureDescText, state.previousBodyParams.figure, state.recentBodyChanges));
 
-    // Мышцы
     let muscleDescText = "💪 Мышцы: ";
-    // ... (вся логика для muscleDescText) ...
         if (T > C.MUSCLE_T_HIGH_THRESHOLD_FOR_BULK && !E_is_dominant) muscleDescText += P < C.MUSCLE_P_THRESHOLD_FOR_BULK_SOFTENING ? "Развитые, рельефные." : "Крепкие, но теряют твердость.";
         else if (T > C.MUSCLE_T_MID_THRESHOLD_FOR_TONE && !E_is_dominant) muscleDescText += "Умеренно развиты, в тонусе.";
         else if (E_is_dominant && E > C.MUSCLE_E_DOMINANT_THRESHOLD_FOR_LOSS) muscleDescText += `Уменьшились, стали мягче. Сила снизилась (T:${T.toFixed(0)}).`;
         else muscleDescText += `Слабые, без рельефа. (T:${T.toFixed(0)})`;
     allBodyLines.push(generateBodyParameterDescription('muscle', muscleDescText, state.previousBodyParams.muscle, state.recentBodyChanges));
     
-    // Гениталии (Пенис/Клитор)
     let penisShrinkageFactor = ((E - C.BASE_E) * C.GENITAL_PENIS_E_SHRINK_FACTOR + Math.max(0, 50 - T) * C.GENITAL_PENIS_LOW_T_SHRINK_FACTOR) *
             (C.GENITAL_PROGRESS_ACCELERATOR_BASE + P / C.GENITAL_PROGRESS_ACCELERATOR_SCALE);
     penisShrinkageFactor = Math.max(0, penisShrinkageFactor);
@@ -272,7 +247,6 @@ export function updateBody() {
     penisDescText += `Эрекция: ${erectionQuality}.`;
     allBodyLines.push(generateBodyParameterDescription('genitalsPenis', penisDescText, state.previousBodyParams.genitalsPenis, state.recentBodyChanges));
 
-    // Гениталии (Яички)
     let testicleShrinkageFactor = ((E - C.BASE_E) * C.GENITAL_TESTICLES_E_SHRINK_FACTOR + Math.max(0, 40 - T) * C.GENITAL_TESTICLES_LOW_T_SHRINK_FACTOR) *
             (C.GENITAL_PROGRESS_ACCELERATOR_BASE + P / C.GENITAL_PROGRESS_ACCELERATOR_SCALE);
     testicleShrinkageFactor = Math.max(0, testicleShrinkageFactor);
@@ -284,7 +258,6 @@ export function updateBody() {
     }
     allBodyLines.push(generateBodyParameterDescription('genitalsTesticles', testiclesDescText, state.previousBodyParams.genitalsTesticles, state.recentBodyChanges));
 
-    // --- Ощущения (остаются в краткой сводке, но и в полную версию их добавим) ---
     let feelingDesc = "✨ Ощущения: ";
     if (P > C.FEELING_P_THRESHOLD_PERFECT_SISSY && E_is_dominant && E > C.FEELING_E_THRESHOLD_PERFECT_SISSY) feelingDesc += "Воплощение женственности. Гармония.";
     else if (P > C.FEELING_P_THRESHOLD_REAL_SISSY && E_is_dominant) feelingDesc += "Чувствуешь себя настоящей сисси. Уверенность растет.";
@@ -293,14 +266,11 @@ export function updateBody() {
     else feelingDesc += "Самое начало пути. Ветерок перемен едва коснулся.";
     allBodyLines.push(feelingDesc);
 
-    // --- Наряд (остается в краткой сводке, но и в полную версию) ---
     const outfitDesc = getCurrentOutfitDescription();
     allBodyLines.push(outfitDesc);
 
-    // Сохраняем полное описание для модального окна
     fullBodyDescriptionForModalStore = allBodyLines.join('\n\n');
 
-    // --- Формирование краткой сводки для el.bodyDesc ---
     let summaryLines = [];
     summaryLines.push(feelingDesc);
     summaryLines.push(outfitDesc);
@@ -351,22 +321,23 @@ export function renderWardrobeUI() {
     equippedSection.appendChild(equippedTitle);
 
     let anythingEquipped = false;
-    for (const slot in state.currentOutfit) {
-        const itemId = state.currentOutfit[slot];
+    for (const slotName in state.currentOutfit) {
+        const itemId = state.currentOutfit[slotName];
         if (itemId) {
             anythingEquipped = true;
             const item = CLOTHING_ITEMS[itemId];
             const itemDiv = document.createElement('div');
             itemDiv.className = 'wardrobe-item-display';
             
-            const itemName = document.createElement('span');
-            itemName.textContent = `${item.name} (слот: ${CLOTHING_SLOTS[Object.keys(CLOTHING_SLOTS).find(key => CLOTHING_SLOTS[key] === item.slot)] || item.slot})`; 
-            itemDiv.appendChild(itemName);
+            const itemNameSpan = document.createElement('span');
+            const userFriendlySlotName = Object.keys(CLOTHING_SLOTS).find(key => CLOTHING_SLOTS[key] === slotName) || slotName;
+            itemNameSpan.textContent = `${item.name} (слот: ${userFriendlySlotName})`; 
+            itemDiv.appendChild(itemNameSpan);
 
             const unequipButton = document.createElement('button');
             unequipButton.textContent = 'Снять';
             unequipButton.className = 'choice-button wardrobe-button'; 
-            unequipButton.onclick = () => unequipItem(item.slot); // Pass the actual slot key
+            unequipButton.onclick = () => unequipItem(slotName);
             itemDiv.appendChild(unequipButton);
             
             equippedSection.appendChild(itemDiv);
@@ -396,11 +367,10 @@ export function renderWardrobeUI() {
             const itemDiv = document.createElement('div');
             itemDiv.className = 'wardrobe-item-display';
 
-            const itemName = document.createElement('span');
-            // Display slot user-friendly name if possible
+            const itemNameSpan = document.createElement('span');
             const slotKeyName = Object.keys(CLOTHING_SLOTS).find(key => CLOTHING_SLOTS[key] === item.slot);
-            itemName.textContent = `${item.name} (слот: ${slotKeyName || item.slot})`;
-            itemDiv.appendChild(itemName);
+            itemNameSpan.textContent = `${item.name} (слот: ${slotKeyName || item.slot})`;
+            itemDiv.appendChild(itemNameSpan);
 
             const equipButton = document.createElement('button');
             equipButton.textContent = 'Надеть';
@@ -433,11 +403,9 @@ export function renderChoices() {
         if (action.tab !== state.tab) {
             return false;
         }
-
         if (action.tab === 'hormone' && !state.hormonesUnlocked) {
             return false;
         }
-
         if (action.displayCondition && !action.displayCondition.call(action)) {
             return false;
         }
@@ -466,6 +434,8 @@ export function renderChoices() {
             case 'read_book': icon = state.hormonesUnlocked ? '📖 ' : '📚 '; break;
             case 'browse_internet': icon = '🌐 '; break;
             case 'rest': icon = '😴 '; break;
+            case 'save_game': icon = '💾 '; break;
+            case 'load_game': icon = '📂 '; break; 
         }
 
         let currentText = icon + baseText;
@@ -478,7 +448,7 @@ export function renderChoices() {
             } else {
                 currentText += ` (–${action.cost}${C.CURRENCY_SYMBOL})`;
             }
-        } else if (action.id === 'work') {
+        } else if (action.id === 'work') { 
             currentText += ` (+${C.WORK_INCOME}${C.CURRENCY_SYMBOL})`;
         }
         
@@ -543,3 +513,4 @@ function generateBodyParameterDescription(paramKey, currentValue, previousValue,
     state.previousBodyParams[paramKey] = currentValue;
     return currentValue;
 }
+// --- END OF FILE ui.js ---

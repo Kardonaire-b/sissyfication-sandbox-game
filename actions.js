@@ -2,6 +2,7 @@ import { state } from './state.js';
 import * as C from './config.js';
 import { nextDay, checkHormoneUnlock } from './gameLogic.js';
 import { log } from './ui.js';
+import { saveGame, loadGame } from './saveLoad.js';
 
 export const actions = [
     {
@@ -99,6 +100,23 @@ export const actions = [
             state.estrogen = Math.max(C.BASE_E, state.estrogen * C.REST_HORMONE_DECAY_MULTIPLIER);
             nextDay();
             log('Тело отдыхает. Гормоны слегка снизились.', 'default');
+        }
+    },
+    {
+        id: 'save_game',
+        text: 'Сохранить игру', cost: 0, tab: 'other',
+        handler: () => {
+            saveGame();
+            // nextDay() здесь НЕ нужен, так как это не игровое действие, проматывающее время
+        }
+    },
+    {
+        id: 'load_game',
+        text: 'Загрузить игру', cost: 0, tab: 'other',
+        handler: () => {
+            loadGame();
+            // nextDay() здесь НЕ нужен
+            // UI обновится изнутри loadGame через updateStats() и другие UI-функции
         }
     }
 ];
