@@ -3,8 +3,6 @@ import { CLOTHING_ITEMS, CLOTHING_SLOTS } from './wardrobeConfig.js';
 import { updateStats } from './ui.js'; // Понадобится для обновления UI после действий
 
 export function equipItem(itemId) {
-    console.log(`wardrobeLogic: equipItem вызван. Текущий state.tab = '${state.tab}'`);
-    console.log(`Попытка надеть: ${itemId}`);
     const itemToEquip = CLOTHING_ITEMS[itemId];
 
     if (!itemToEquip) {
@@ -45,26 +43,20 @@ export function equipItem(itemId) {
 
     // Надеваем новый предмет
     currentOutfit[slotToOccupy] = itemId;
-
-
-    console.log('Текущий наряд:', JSON.parse(JSON.stringify(state.currentOutfit)));
     
     updateStats();
 }
 
 // Внутренняя функция для снятия без полного обновления UI (используется для разрешения конфликтов)
 function unequipItemInternal(slotToUnequip) {
-    console.log(`wardrobeLogic: unequipItem вызван. Текущий state.tab = '${state.tab}'`);
     const itemToRemoveId = state.currentOutfit[slotToUnequip];
     if (itemToRemoveId) {
         // const itemToRemove = CLOTHING_ITEMS[itemToRemoveId];
         state.currentOutfit[slotToUnequip] = null;
-        console.log(`Снято (внутренне): ${itemToRemoveId} из слота ${slotToUnequip}`);
     }
 }
 
 export function unequipItem(slotToUnequip) {
-    console.log(`Попытка снять из слота: ${slotToUnequip}`);
     const itemToRemoveId = state.currentOutfit[slotToUnequip];
 
     if (!itemToRemoveId) {
