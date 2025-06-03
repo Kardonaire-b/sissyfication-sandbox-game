@@ -6,6 +6,7 @@ import { CLOTHING_ITEMS, CLOTHING_SLOTS } from './wardrobeConfig.js';
 import { equipItem, unequipItem } from './wardrobeLogic.js';
 
 let fullBodyDescriptionForModalStore = ""; // Переменная для хранения полного описания
+let choiceButtonCache = {}; // Cache for action button elements: { action.id: { buttonElement: HTMLButtonElement } }
 
 
 export function log(msg, type = 'default') {
@@ -290,27 +291,22 @@ export function updateBody() {
     else if (P > C.FEELING_P_THRESHOLD_TRANSFORMATION_FULL_SWING && (E_is_dominant || hormonalBalanceFactor > C.FEELING_HORMONAL_BALANCE_THRESHOLD_TRANSFORMATION_FULL_SWING)) feelingDesc += "Трансформация идет полным ходом! Прилив сисси-энергии.";
     else if (P > C.FEELING_P_THRESHOLD_FIRST_WHISPERS) feelingDesc += "Первые шепоты изменений. Тело меняется, это волнует.";
     else feelingDesc += "Самое начало пути. Ветерок перемен едва коснулся.";
-    // Ощущения не будем сравнивать для recentChanges, они слишком общие
-    // Вместо этого, их предыдущее значение можно хранить отдельно, если нужно отслеживать *их* изменение для лога, например.
-    // state.previousBodyParams.feeling = feelingDesc; (если нужно)
-    allBodyLines.push(feelingDesc); // Добавляем в полное описание
+    allBodyLines.push(feelingDesc);
 
     // --- Наряд (остается в краткой сводке, но и в полную версию) ---
-    const outfitDesc = getCurrentOutfitDescription(); // Уже есть
-    // state.previousBodyParams.outfit = outfitDesc; (если нужно)
-    allBodyLines.push(outfitDesc); // Добавляем в полное описание
+    const outfitDesc = getCurrentOutfitDescription();
+    allBodyLines.push(outfitDesc);
 
     // Сохраняем полное описание для модального окна
     fullBodyDescriptionForModalStore = allBodyLines.join('\n\n');
 
     // --- Формирование краткой сводки для el.bodyDesc ---
     let summaryLines = [];
-    summaryLines.push(feelingDesc); // Всегда показываем ощущения
-    summaryLines.push(outfitDesc);  // Всегда показываем наряд
+    summaryLines.push(feelingDesc);
+    summaryLines.push(outfitDesc);
 
     if (state.recentBodyChanges.length > 0) {
-        summaryLines.push("\n❗ Ключевые изменения за последний день:"); // Добавил \n для отступа
-        // Ограничим количество показываемых изменений в сводке
+        summaryLines.push("\n❗ Ключевые изменения за последний день:");
         const maxChangesToShowInSummary = 3;
         state.recentBodyChanges.slice(0, maxChangesToShowInSummary).forEach(change => {
             summaryLines.push(`  - ${change}`);
@@ -318,19 +314,16 @@ export function updateBody() {
         if (state.recentBodyChanges.length > maxChangesToShowInSummary) {
             summaryLines.push(`  ... и еще ${state.recentBodyChanges.length - maxChangesToShowInSummary} изм.`);
         }
-    } else if (state.day > 1) { // Не показываем "нет изменений" в самый первый день после разблокировки
+    } else if (state.day > 1) {
         summaryLines.push("\nЗаметных физических изменений за последний день не произошло.");
     }
     
-    // Добавляем кнопку для открытия модального окна
-    // Вместо прямого добавления кнопки в текст, создадим ее через DOM
-    el.bodyDesc.innerHTML = ''; // Очищаем предыдущее содержимое
+    el.bodyDesc.innerHTML = '';
     summaryLines.forEach(line => {
         const p = document.createElement('p');
         p.textContent = line;
-        // Для строк с изменениями можно добавить отступы или маркеры через CSS, если сделать их отдельными <p>
         if (line.startsWith("  - ") || line.startsWith("\n❗") || line.startsWith("\nЗаметных")) {
-            p.style.whiteSpace = 'pre-wrap'; // Чтобы \n сработал
+            p.style.whiteSpace = 'pre-wrap';
             if (line.startsWith("  - ")) p.style.marginLeft = "1em";
         }
         el.bodyDesc.appendChild(p);
@@ -367,13 +360,13 @@ export function renderWardrobeUI() {
             itemDiv.className = 'wardrobe-item-display';
             
             const itemName = document.createElement('span');
-            itemName.textContent = `${item.name} (слот: ${slot})`; 
+            itemName.textContent = `${item.name} (слот: ${CLOTHING_SLOTS[Object.keys(CLOTHING_SLOTS).find(key => CLOTHING_SLOTS[key] === item.slot)] || item.slot})`; 
             itemDiv.appendChild(itemName);
 
             const unequipButton = document.createElement('button');
             unequipButton.textContent = 'Снять';
             unequipButton.className = 'choice-button wardrobe-button'; 
-            unequipButton.onclick = () => unequipItem(slot);
+            unequipButton.onclick = () => unequipItem(item.slot); // Pass the actual slot key
             itemDiv.appendChild(unequipButton);
             
             equippedSection.appendChild(itemDiv);
@@ -404,7 +397,9 @@ export function renderWardrobeUI() {
             itemDiv.className = 'wardrobe-item-display';
 
             const itemName = document.createElement('span');
-            itemName.textContent = `${item.name} (слот: ${item.slot})`;
+            // Display slot user-friendly name if possible
+            const slotKeyName = Object.keys(CLOTHING_SLOTS).find(key => CLOTHING_SLOTS[key] === item.slot);
+            itemName.textContent = `${item.name} (слот: ${slotKeyName || item.slot})`;
             itemDiv.appendChild(itemName);
 
             const equipButton = document.createElement('button');
@@ -421,35 +416,48 @@ export function renderWardrobeUI() {
         const p = document.createElement('p');
         p.textContent = 'В шкафу пока пусто.';
         ownedSection.appendChild(p);
-    } else if (!anythingInClosetToWear) {
+    } else if (!anythingInClosetToWear && state.ownedClothes.length > 0) {
         const p = document.createElement('p');
         p.textContent = 'Вся доступная одежда уже надета.';
         ownedSection.appendChild(p);
     }
     
-    wardrobeContainer.appendChild(ownedSection); // Убедились, что ownedSection добавляется
+    wardrobeContainer.appendChild(ownedSection);
     el.choices.appendChild(wardrobeContainer);
 }
 
 export function renderChoices() {
-    el.choices.innerHTML = '';
-    actions.filter(action => {
+    el.choices.innerHTML = ''; 
+
+    const actionsToDisplay = actions.filter(action => {
+        if (action.tab !== state.tab) {
+            return false;
+        }
+
         if (action.tab === 'hormone' && !state.hormonesUnlocked) {
             return false;
         }
-        return action.tab === state.tab;
-    }).forEach(action => {
-        if (action.displayCondition && !action.displayCondition()) {
-            return;
+
+        if (action.displayCondition && !action.displayCondition.call(action)) {
+            return false;
+        }
+        return true;
+    });
+
+    actionsToDisplay.forEach(action => {
+        let buttonElement;
+
+        if (!choiceButtonCache[action.id]) {
+            buttonElement = document.createElement('button');
+            buttonElement.className = 'choice-button';
+            buttonElement.addEventListener('click', action.handler.bind(action));
+            choiceButtonCache[action.id] = { buttonElement: buttonElement };
+        } else {
+            buttonElement = choiceButtonCache[action.id].buttonElement;
         }
 
-        const b = document.createElement('button');
-        b.className = 'choice-button';
-
-        let baseText = typeof action.text === 'function' ? action.text() : action.text;
+        let baseText = typeof action.text === 'function' ? action.text.call(action) : action.text;
         let icon = '';
-
-        // Иконки на основе ID действия
         switch (action.id) {
             case 'work': icon = '💼 '; break;
             case 't_blocker': icon = '💊 '; break;
@@ -460,43 +468,42 @@ export function renderChoices() {
             case 'rest': icon = '😴 '; break;
         }
 
-        let currentText = icon + baseText; // Простое присвоение иконки и текста
-
+        let currentText = icon + baseText;
         let isDisabled = false;
-        if (action.cost > 0 && state.money < action.cost) {
-            isDisabled = true;
-            currentText += ` (Нужно: ${action.cost}${C.CURRENCY_SYMBOL})`;
-        } else if (action.cost > 0) {
-            currentText += ` (–${action.cost}${C.CURRENCY_SYMBOL})`;
+
+        if (action.cost > 0) {
+            if (state.money < action.cost) {
+                isDisabled = true;
+                currentText += ` (Нужно: ${action.cost}${C.CURRENCY_SYMBOL})`;
+            } else {
+                currentText += ` (–${action.cost}${C.CURRENCY_SYMBOL})`;
+            }
         } else if (action.id === 'work') {
             currentText += ` (+${C.WORK_INCOME}${C.CURRENCY_SYMBOL})`;
         }
-
-        if (action.condition && !action.condition()) {
+        
+        if (action.condition && !action.condition.call(action)) {
             isDisabled = true;
             if (action.id === 't_blocker' && state.t_blocker_active_days > 0) {
                 currentText = `${icon}Блокатор Т активен (${state.t_blocker_active_days} дн.)`;
             }
         }
 
-        b.textContent = currentText;
-        b.disabled = isDisabled;
+        buttonElement.textContent = currentText;
+        buttonElement.disabled = isDisabled;
 
-        b.addEventListener('click', () => {
-            action.handler();
-        });
-        el.choices.appendChild(b);
+        el.choices.appendChild(buttonElement);
     });
 }
+
 
 export function updateStats() {
     el.day.textContent = state.day;
     el.money.textContent = state.money + C.CURRENCY_SYMBOL;
-    // Отображение статов гормонов как X / MAX
     el.test.textContent = `${state.testosterone.toFixed(0)} / ${C.MAX_HORMONE_LEVEL}`;
     el.est.textContent = `${state.estrogen.toFixed(0)} / ${C.MAX_HORMONE_LEVEL}`;
 
-    updateProgressDisplay(); // Обновляет также и отображение X / MAX для прогресса/открытий
+    updateProgressDisplay(); 
     updateTabsVisibility(); 
 
     el.tbar.style.width = (state.testosterone / C.MAX_HORMONE_LEVEL * 100) + '%';
@@ -509,8 +516,6 @@ export function updateStats() {
     } else { 
         renderChoices(); 
     }
-
-    
 }
 
 export function openBodyDetailsModal() {
@@ -529,19 +534,12 @@ export function closeBodyDetailsModal() {
 }
 
 function generateBodyParameterDescription(paramKey, currentValue, previousValue, changeTexts) {
-    // paramKey: 'voice', 'skin' и т.д.
-    // currentValue: текущее текстовое описание параметра (например, "🎤 Голос: ...")
-    // previousValue: предыдущее текстовое описание параметра
-    // changeTexts: массив, куда добавлять сообщения об изменениях
-
-    if (currentValue !== previousValue && previousValue !== undefined && previousValue !== "") { // Добавил previousValue !== ""
-        // Извлекаем только описание, без заголовка и иконки
+    if (currentValue !== previousValue && previousValue !== undefined && previousValue !== "") {
         const changeDescription = currentValue.substring(currentValue.indexOf(':') + 1).trim();
-        // Можно добавить более умное определение "значимости"
-        if (changeDescription) { // Убедимся, что есть что добавлять
+        if (changeDescription) {
              changeTexts.push(`${currentValue.split(':')[0]}: ${changeDescription.charAt(0).toLowerCase() + changeDescription.slice(1)}`);
         }
     }
-    state.previousBodyParams[paramKey] = currentValue; // Сохраняем текущее для следующего раза
-    return currentValue; // Возвращаем полное описание параметра для общего списка
+    state.previousBodyParams[paramKey] = currentValue;
+    return currentValue;
 }
