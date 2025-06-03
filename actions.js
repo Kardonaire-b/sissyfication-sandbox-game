@@ -4,6 +4,7 @@ import { nextDay, checkHormoneUnlock } from './gameLogic.js';
 import { log } from './ui.js';
 import { saveGame, loadGame } from './saveLoad.js';
 
+// Список действий, доступных игроку
 export const actions = [
     {
         id: 'work',
@@ -18,7 +19,7 @@ export const actions = [
         id: 't_blocker',
         text: `Блокатор Т (${C.T_BLOCKER_DURATION_DAYS} дн.)`, cost: C.T_BLOCKER_COST, tab: 'hormone',
         condition: () => state.hormonesUnlocked && state.t_blocker_active_days === 0,
-        handler: function() { // Используем function для this.id, если нужно
+        handler: function() {
             if (state.money >= C.T_BLOCKER_COST) {
                 state.money -= C.T_BLOCKER_COST;
                 state.t_blocker_active_days = C.T_BLOCKER_DURATION_DAYS;
@@ -26,10 +27,9 @@ export const actions = [
                 nextDay();
                 log(`💊 Блокатор тестостерона активирован на ${C.T_BLOCKER_DURATION_DAYS} дней!`, 'hormone-change');
             } else {
-                // UI должен был предотвратить это. Можно вывести предупреждение в консоль для разработчика.
-                // Игроку сообщение не выводим, так как кнопка должна быть задизейблена.
+                // Кнопка должна быть недоступна при недостатке денег,
+                // поэтому сообщение выводим только в консоль
                 console.warn(`Действие ${this.id || 't_blocker'} вызвано при нехватке денег. UI должен был это предотвратить.`);
-                // log(`Недостаточно денег. Нужно ${C.T_BLOCKER_COST}${C.CURRENCY_SYMBOL}.`, 'money-loss'); // Это сообщение не нужно, если UI работает
             }
         }
     },
@@ -37,8 +37,7 @@ export const actions = [
         id: 't_pill',
         text: `Таблетка T (+${C.T_PILL_EFFECT} T)`, cost: C.HORMONE_PILL_COST, tab: 'hormone',
         condition: () => state.hormonesUnlocked,
-        handler: function() { // Используем function для this.id, если нужно
-            // +++ Добавлена проверка на достаточность денег +++
+        handler: function() {
             if (state.money >= C.HORMONE_PILL_COST) {
                 state.money -= C.HORMONE_PILL_COST;
                 state.testosterone = Math.min(C.MAX_HORMONE_LEVEL, state.testosterone + C.T_PILL_EFFECT);
@@ -53,8 +52,7 @@ export const actions = [
         id: 'e_pill',
         text: `Таблетка E (+${C.E_PILL_EFFECT_E} E, -${C.E_PILL_EFFECT_T_REDUCTION} T)`, cost: C.HORMONE_PILL_COST, tab: 'hormone',
         condition: () => state.hormonesUnlocked,
-        handler: function() { // Используем function для this.id, если нужно
-            // +++ Добавлена проверка на достаточность денег +++
+        handler: function() {
             if (state.money >= C.HORMONE_PILL_COST) {
                 state.money -= C.HORMONE_PILL_COST;
                 state.estrogen = Math.min(C.MAX_HORMONE_LEVEL, state.estrogen + C.E_PILL_EFFECT_E);
@@ -96,7 +94,8 @@ export const actions = [
                 log(msg, 'discovery');
                 checkHormoneUnlock();
             } else {
-                const progressGain = C.BOOK_PROGRESS_GAIN; // Или C.INTERNET_PROGRESS_GAIN
+                // Интернет даёт такой же прогресс, как и чтение
+                const progressGain = C.BOOK_PROGRESS_GAIN;
                 state.progress = Math.min(C.MAX_PROGRESS, state.progress + progressGain);
                 log(`🌐 Поиск в интернете расширяет твое понимание трансформации. Прогресс +${progressGain}%.`, 'progress-change');
             }

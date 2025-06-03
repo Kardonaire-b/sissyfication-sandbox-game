@@ -46,7 +46,6 @@ export function equipItem(itemId) {
     // Надеваем новый предмет
     currentOutfit[slotToOccupy] = itemId;
 
-    // TODO: Добавить/обновить state.totalFeelingBonus или подобное, если есть feelingBonus у предмета
 
     console.log('Текущий наряд:', JSON.parse(JSON.stringify(state.currentOutfit)));
     
@@ -59,7 +58,6 @@ function unequipItemInternal(slotToUnequip) {
     const itemToRemoveId = state.currentOutfit[slotToUnequip];
     if (itemToRemoveId) {
         // const itemToRemove = CLOTHING_ITEMS[itemToRemoveId];
-        // TODO: Вычесть feelingBonus, если есть
         state.currentOutfit[slotToUnequip] = null;
         console.log(`Снято (внутренне): ${itemToRemoveId} из слота ${slotToUnequip}`);
     }
@@ -74,10 +72,7 @@ export function unequipItem(slotToUnequip) {
         return;
     }
     
-    unequipItemInternal(slotToUnequip); // Используем внутреннюю функцию для основной логики снятия
-
-    // TODO: Можно добавить логику авто-надевания базовой одежды, если это необходимо.
-    // Например, если сняли последнюю футболку, надеть стартовую мужскую, если нечего больше.
+    unequipItemInternal(slotToUnequip); // снимаем вещь без обновления UI
 
     updateStats();
 }
