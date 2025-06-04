@@ -5,8 +5,6 @@ import * as C from './config.js';
 import { CLOTHING_ITEMS, CLOTHING_SLOTS } from './wardrobeConfig.js';
 import { equipItem, unequipItem } from './wardrobeLogic.js';
 
-// Модуль управления пользовательским интерфейсом
-
 let fullBodyDescriptionForModalStore = "";
 let choiceButtonCache = {};
 
@@ -139,14 +137,6 @@ export function getCurrentOutfitDescription() {
     return `👕 Наряд: ${finalDescription.charAt(0).toUpperCase() + finalDescription.slice(1)}`;
 }
 
-// --- Функции для генерации описаний частей тела ---
-/**
- * Генерирует описание голоса.
- * @param {number} T - Уровень тестостерона (EMA).
- * @param {number} E - Уровень эстрогена (EMA).
- * @param {number} P - Уровень прогресса.
- * @returns {string} Описание голоса.
- */
 function getVoiceDescription(T, E, P) {
     let voicePitch = C.VOICE_PITCH_BASE_HZ - (T - E) * C.VOICE_PITCH_HORMONE_FACTOR;
     voicePitch = Math.max(80, Math.min(300, voicePitch));
@@ -164,15 +154,6 @@ function getVoiceDescription(T, E, P) {
     return `🎤 Голос: ${voicePitch.toFixed(0)} Гц. ${specificDesc}`;
 }
 
-/**
- * Генерирует описание кожи.
- * @param {number} T - Уровень тестостерона (EMA).
- * @param {number} E - Уровень эстрогена (EMA).
- * @param {number} P - Уровень прогресса.
- * @param {boolean} E_is_dominant - Флаг доминирования эстрогена.
- * @param {boolean} T_is_dominant - Флаг доминирования тестостерона.
- * @returns {string} Описание кожи.
- */
 function getSkinDescription(T, E, P, E_is_dominant, T_is_dominant) {
     let skinDescText = "💧 Кожа: ";
     if (E_is_dominant && E > C.SKIN_E_DOMINANT_THRESHOLD_FOR_SOFTNESS) {
@@ -190,15 +171,6 @@ function getSkinDescription(T, E, P, E_is_dominant, T_is_dominant) {
     return skinDescText;
 }
 
-/**
- * Генерирует описание волос на теле/лице.
- * @param {number} T - Уровень тестостерона (EMA).
- * @param {number} E - Уровень эстрогена (EMA).
- * @param {number} P - Уровень прогресса.
- * @param {boolean} E_is_dominant - Флаг доминирования эстрогена.
- * @param {boolean} T_is_dominant - Флаг доминирования тестостерона.
- * @returns {string} Описание волос.
- */
 function getBodyHairDescription(T, E, P, E_is_dominant, T_is_dominant) {
     let bodyHairDescText = "🌿 Волосы на теле/лице: ";
     if (E_is_dominant && E > C.BODYHAIR_E_DOMINANT_THRESHOLD_FOR_REDUCTION && P > C.BODYHAIR_P_THRESHOLD_FOR_REDUCTION) {
@@ -216,12 +188,6 @@ function getBodyHairDescription(T, E, P, E_is_dominant, T_is_dominant) {
     return bodyHairDescText;
 }
 
-/**
- * Генерирует описание груди.
- * @param {number} E - Уровень эстрогена (EMA).
- * @param {number} P - Уровень прогресса.
- * @returns {string} Описание груди.
- */
 function getBreastDescription(E, P) {
     let breastDescText = "🍈 Грудь: ";
     let breastDevStageRaw = 0;
@@ -239,15 +205,6 @@ function getBreastDescription(E, P) {
     return breastDescText;
 }
 
-/**
- * Генерирует описание фигуры.
- * @param {number} T - Уровень тестостерона (EMA).
- * @param {number} E - Уровень эстрогена (EMA).
- * @param {number} P - Уровень прогресса.
- * @param {boolean} E_is_dominant - Флаг доминирования эстрогена.
- * @param {boolean} T_is_dominant - Флаг доминирования тестостерона.
- * @returns {string} Описание фигуры.
- */
 function getFigureDescription(T, E, P, E_is_dominant, T_is_dominant) {
     let figureDescText = "🍑 Фигура: ";
     const whr_change_potential = C.FIGURE_WHR_BASE - C.FIGURE_WHR_TARGET_FEMALE;
@@ -268,14 +225,6 @@ function getFigureDescription(T, E, P, E_is_dominant, T_is_dominant) {
     return figureDescText;
 }
 
-/**
- * Генерирует описание мышц.
- * @param {number} T - Уровень тестостерона (EMA).
- * @param {number} E - Уровень эстрогена (EMA).
- * @param {number} P - Уровень прогресса.
- * @param {boolean} E_is_dominant - Флаг доминирования эстрогена.
- * @returns {string} Описание мышц.
- */
 function getMuscleDescription(T, E, P, E_is_dominant) {
     let muscleDescText = "💪 Мышцы: ";
     if (T > C.MUSCLE_T_HIGH_THRESHOLD_FOR_BULK && !E_is_dominant) {
@@ -290,14 +239,6 @@ function getMuscleDescription(T, E, P, E_is_dominant) {
     return muscleDescText;
 }
 
-/**
- * Генерирует описание пениса/клитора.
- * @param {number} T - Уровень тестостерона (EMA).
- * @param {number} E - Уровень эстрогена (EMA).
- * @param {number} P - Уровень прогресса.
- * @param {boolean} E_is_dominant - Флаг доминирования эстрогена.
- * @returns {string} Описание пениса/клитора.
- */
 function getPenisDescription(T, E, P, E_is_dominant) {
     let penisShrinkageFactor = ((E - C.BASE_E) * C.GENITAL_PENIS_E_SHRINK_FACTOR + Math.max(0, 50 - T) * C.GENITAL_PENIS_LOW_T_SHRINK_FACTOR) *
         (C.GENITAL_PROGRESS_ACCELERATOR_BASE + P / C.GENITAL_PROGRESS_ACCELERATOR_SCALE);
@@ -319,14 +260,6 @@ function getPenisDescription(T, E, P, E_is_dominant) {
     return penisDescText;
 }
 
-/**
- * Генерирует описание яичек.
- * @param {number} T - Уровень тестостерона (EMA).
- * @param {number} E - Уровень эстрогена (EMA).
- * @param {number} P - Уровень прогресса.
- * @param {boolean} E_is_dominant - Флаг доминирования эстрогена.
- * @returns {string} Описание яичек.
- */
 function getTesticlesDescription(T, E, P, E_is_dominant) {
     let testicleShrinkageFactor = ((E - C.BASE_E) * C.GENITAL_TESTICLES_E_SHRINK_FACTOR + Math.max(0, 40 - T) * C.GENITAL_TESTICLES_LOW_T_SHRINK_FACTOR) *
         (C.GENITAL_PROGRESS_ACCELERATOR_BASE + P / C.GENITAL_PROGRESS_ACCELERATOR_SCALE);
@@ -341,14 +274,6 @@ function getTesticlesDescription(T, E, P, E_is_dominant) {
     return testiclesDescText;
 }
 
-/**
- * Генерирует описание ощущений.
- * @param {number} E - Уровень эстрогена (EMA).
- * @param {number} P - Уровень прогресса.
- * @param {boolean} E_is_dominant - Флаг доминирования эстрогена.
- * @param {number} hormonalBalanceFactor - Фактор гормонального баланса.
- * @returns {string} Описание ощущений.
- */
 function getFeelingDescription(E, P, E_is_dominant, hormonalBalanceFactor) {
     let feelingDesc = "✨ Ощущения: ";
     if (P > C.FEELING_P_THRESHOLD_PERFECT_SISSY && E_is_dominant && E > C.FEELING_E_THRESHOLD_PERFECT_SISSY) feelingDesc += "Воплощение женственности. Гармония.";
@@ -358,7 +283,6 @@ function getFeelingDescription(E, P, E_is_dominant, hormonalBalanceFactor) {
     else feelingDesc += "Самое начало пути. Ветерок перемен едва коснулся.";
     return feelingDesc;
 }
-// --- Конец функций для генерации описаний частей тела ---
 
 export function updateBody() {
     const T = state.emaT, E = state.emaE;
@@ -368,7 +292,7 @@ export function updateBody() {
     const hormonalBalanceFactor = Math.max(0, Math.min(100, (E - T + C.MAX_HORMONE_LEVEL) / 2));
 
     let allBodyLines = [];
-    state.recentBodyChanges = []; // Очищаем перед каждым обновлением
+    state.recentBodyChanges = [];
 
     if (!state.hormonesUnlocked) {
         let preUnlockLines = [];
@@ -384,7 +308,6 @@ export function updateBody() {
         return;
     }
 
-    // --- Вызов новых функций для генерации описаний ---
     allBodyLines.push(generateBodyParameterDescription('voice', getVoiceDescription(T, E, P), state.previousBodyParams.voice, state.recentBodyChanges));
     allBodyLines.push(generateBodyParameterDescription('skin', getSkinDescription(T, E, P, E_is_dominant, T_is_dominant), state.previousBodyParams.skin, state.recentBodyChanges));
     allBodyLines.push(generateBodyParameterDescription('bodyHair', getBodyHairDescription(T, E, P, E_is_dominant, T_is_dominant), state.previousBodyParams.bodyHair, state.recentBodyChanges));
@@ -394,14 +317,12 @@ export function updateBody() {
     allBodyLines.push(generateBodyParameterDescription('genitalsPenis', getPenisDescription(T, E, P, E_is_dominant), state.previousBodyParams.genitalsPenis, state.recentBodyChanges));
     allBodyLines.push(generateBodyParameterDescription('genitalsTesticles', getTesticlesDescription(T, E, P, E_is_dominant), state.previousBodyParams.genitalsTesticles, state.recentBodyChanges));
 
-    // Ощущения и наряд
     const feelingDesc = getFeelingDescription(E, P, E_is_dominant, hormonalBalanceFactor);
     allBodyLines.push(feelingDesc);
 
     const outfitDesc = getCurrentOutfitDescription();
     allBodyLines.push(outfitDesc);
 
-    // --- Формирование текста для модального окна и сводки ---
     fullBodyDescriptionForModalStore = allBodyLines.join('\n\n');
 
     let summaryLines = [];
@@ -421,7 +342,6 @@ export function updateBody() {
         summaryLines.push("\nЗаметных физических изменений за последний день не произошло.");
     }
     
-    // --- Отображение в DOM ---
     el.bodyDesc.innerHTML = '';
     summaryLines.forEach(line => {
         const p = document.createElement('p');

@@ -4,7 +4,6 @@ import { nextDay, checkHormoneUnlock } from './gameLogic.js';
 import { log } from './ui.js';
 import { saveGame, loadGame } from './saveLoad.js';
 
-// Список действий, доступных игроку
 export const actions = [
     {
         id: 'work',
@@ -27,8 +26,6 @@ export const actions = [
                 nextDay();
                 log(`💊 Блокатор тестостерона активирован на ${C.T_BLOCKER_DURATION_DAYS} дней!`, 'hormone-change');
             } else {
-                // Кнопка должна быть недоступна при недостатке денег,
-                // поэтому сообщение выводим только в консоль
                 console.warn(`Действие ${this.id || 't_blocker'} вызвано при нехватке денег. UI должен был это предотвратить.`);
             }
         }
@@ -94,7 +91,6 @@ export const actions = [
                 log(msg, 'discovery');
                 checkHormoneUnlock();
             } else {
-                // Интернет даёт такой же прогресс, как и чтение
                 const progressGain = C.BOOK_PROGRESS_GAIN;
                 state.progress = Math.min(C.MAX_PROGRESS, state.progress + progressGain);
                 log(`🌐 Поиск в интернете расширяет твое понимание трансформации. Прогресс +${progressGain}%.`, 'progress-change');

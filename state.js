@@ -1,7 +1,6 @@
 import { BASE_E } from './config.js';
-import { CLOTHING_ITEMS, CLOTHING_SLOTS } from './wardrobeConfig.js'; // Импортируем для инициализации
+import { CLOTHING_ITEMS, CLOTHING_SLOTS } from './wardrobeConfig.js';
 
-// Функция для получения начального списка одежды
 function getInitialOwnedClothes() {
     const initialClothes = [];
     for (const itemId in CLOTHING_ITEMS) {
@@ -12,31 +11,21 @@ function getInitialOwnedClothes() {
     return initialClothes;
 }
 
-// Функция для установки начального наряда
 function getInitialOutfit() {
     const outfit = {};
-    // Инициализируем все слоты как null
     for (const slotKey in CLOTHING_SLOTS) {
         outfit[CLOTHING_SLOTS[slotKey]] = null;
     }
 
-    // Надеваем предметы по умолчанию
     getInitialOwnedClothes().forEach(itemId => {
         const item = CLOTHING_ITEMS[itemId];
-        if (item.ownedByDefault) { // Дополнительная проверка, хотя getInitialOwnedClothes уже это делает
-            // Простая логика: если слот свободен, надеваем.
-            // Более сложная логика (конфликты full_body с top/bottom) будет при equipItem.
+        if (item.ownedByDefault) {
             if (outfit[item.slot] === null) {
                  outfit[item.slot] = item.id;
             }
-            // Если это full_body, то очистим top и bottom, если они были как-то по ошибке установлены ранее.
-            // На старте это не должно быть проблемой.
             if (item.slot === CLOTHING_SLOTS.FULL_BODY) {
                 outfit[CLOTHING_SLOTS.TOP] = null;
                 outfit[CLOTHING_SLOTS.BOTTOM] = null;
-                // Можно также очищать и белье, если FULL_BODY его заменяет
-                // outfit[CLOTHING_SLOTS.UNDERWEAR_TOP] = null;
-                // outfit[CLOTHING_SLOTS.UNDERWEAR_BOTTOM] = null;
             }
         }
     });
@@ -57,14 +46,12 @@ export const state = {
   t_blocker_active_days: 0,
   natural_t_multiplier: 1.0,
 
-  ownedClothes: getInitialOwnedClothes(), // Массив ID купленных вещей
-  currentOutfit: getInitialOutfit(),       // Объект { slot: itemId } для надетой одежды
+  ownedClothes: getInitialOwnedClothes(),
+  currentOutfit: getInitialOutfit(),
 
-  // --- Последние описания аспектов тела ---
   previousBodyParams: {},
-  recentBodyChanges: [], // Массив строк ["Изменился голос: стал выше.", "Кожа стала мягче."]
-  // Ощущения и наряд не будем сюда включать, т.к. они всегда в сводке
+  recentBodyChanges: [],
 
-  logMessages: [], // Массив для хранения сообщений лога
-  maxLogMessages: 5, // Максимальное количество сообщений для отображения (можно вынести в config.js)
+  logMessages: [],
+  maxLogMessages: 5,
 };

@@ -2,19 +2,17 @@ import { state } from './state.js';
 import * as C from './config.js';
 import { log, updateTabsVisibility, updateProgressDisplay, updateStats } from './ui.js';
 
-// Проверяет, достаточно ли очков открытий для доступа к гормонам
 export function checkHormoneUnlock() {
     if (!state.hormonesUnlocked && state.discoveryPoints >= C.DISCOVERY_POINTS_TO_UNLOCK_HORMONES) {
         state.hormonesUnlocked = true;
         log("✨ Внезапное озарение! Ты нашла информацию о гормональной терапии и пути к женственности. Кажется, это то, что ты искала... Вкладка 'Гормоны' теперь доступна!", 'important');
         updateTabsVisibility();
         updateProgressDisplay();
-        return true; // Возвращаем true, если разблокировка произошла
+        return true;
     }
     return false;
 }
 
-// Отмечает завершение дня и пересчитывает гормоны
 export function nextDay() {
     state.day++;
 

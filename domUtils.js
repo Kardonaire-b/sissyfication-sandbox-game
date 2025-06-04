@@ -1,10 +1,8 @@
-// Простая оболочка над querySelector для получения одного элемента
 export function $(selector) {
     const id = selector.startsWith('#') ? selector.slice(1) : selector;
     return document.getElementById(id);
 }
 
-// Возвращает массив всех элементов, подходящих под селектор
 export function $$(selector) {
     return Array.from(document.querySelectorAll(selector));
 }
@@ -25,8 +23,7 @@ export const el = {
     choices: $('choices'),
     actionLogOutput: $('action-log-output'),
 
-    // Новые элементы для модального окна
     modalOverlay: $('modal-overlay'),
-    modalBodyDetailsContent: $('modal-body-text-content'), // Куда вставлять текст
+    modalBodyDetailsContent: $('modal-body-text-content'),
     modalCloseButton: $('modal-close-button')
 };
