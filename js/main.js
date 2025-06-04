@@ -73,7 +73,7 @@ function showIntro() {
 }
 
 function initializeGame() {
-     updateTabsVisibility();
+    updateTabsVisibility();
     updateProgressDisplay();
 
     el.tabs.forEach(btn => {
@@ -123,7 +123,8 @@ function initializeGame() {
         }
 
         log(`Ты, ${state.playerName} ${state.playerSurname}, стоишь посреди своей новой комнаты, окруженная коробками. Мачеха, ${C.STEPMOM_NAME}, кажется, уже успела добавить несколько... "женственных" штрихов в интерьер.`, 'important');
-        log(`"Не стесняйся, располагайся, ${state.playerName}!" – доносится ее голос из кухни. – "Я тут приготовила твой любимый чай... и кое-что еще, думаю, тебе понравится."${stepmomComment} Её тон вызывает смешанные чувства любопытства и легкой тревоги.`, 'discovery');
+        // ИЗМЕНЕНИЕ: Меняем тип лога для реплики мачехи
+        log(`"Не стесняйся, располагайся, ${state.playerName}!" – доносится ее голос из кухни. – "Я тут приготовила твой любимый чай... и кое-что еще, думаю, тебе понравится."${stepmomComment} Её тон вызывает смешанные чувства любопытства и легкой тревоги.`, 'stepmom-dialogue'); 
     }
     
     renderLog();

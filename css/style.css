@@ -34,6 +34,10 @@ body {
   font-weight: bold;
   color: #ffc869;
 }
+.log-entry.log-stepmom-dialogue {
+  color: #fca3ff; /* Например, светло-розовый или сиреневый */
+  font-style: italic;
+}
 
 @keyframes fadeInLogEntry {
   from {
@@ -468,79 +472,158 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
+  background: linear-gradient(135deg, #2a2a2a, #1a1a1a); /* Существующий фон */
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 2000; /* Выше чем модальное окно, если понадобится */
+  z-index: 2000;
   padding: 20px;
   box-sizing: border-box;
+  overflow-y: auto; /* Добавляем прокрутку, если контент не помещается */
 }
 
 .intro-content {
   background: #2c2c2e;
-  padding: 30px 40px;
+  padding: 35px 45px; /* Немного увеличим отступы */
   border-radius: 12px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
-  max-width: 700px;
+  max-width: 650px; /* Слегка уменьшим, чтобы выглядело компактнее на больших экранах */
   width: 100%;
   text-align: left;
   color: #e0e0e0;
+  border: 1px solid #404043; /* Очень тонкая рамка для выделения панели */
 }
 
 .intro-content h1 {
   text-align: center;
-  color: #00aeff; /* Или любой другой акцентный цвет */
+  color: #00aeff; /* Существующий цвет */
   margin-top: 0;
-  margin-bottom: 20px;
+  margin-bottom: 30px; /* Больше отступ снизу */
   font-family: 'Roboto', sans-serif;
+  font-weight: 700; /* Сделаем заголовок жирнее */
+  font-size: 2rem; /* Слегка увеличим размер заголовка */
+  letter-spacing: 0.5px;
 }
 
 .intro-content p {
-  font-size: 1rem;
+  font-size: 1rem; /* Можно оставить 1rem или чуть уменьшить до 0.95rem для компактности */
   line-height: 1.7;
-  margin-bottom: 15px;
+  margin-bottom: 18px; /* Немного увеличим отступ */
 }
 
-.intro-content hr {
-  border: 0;
-  height: 1px;
-  background-color: #4f4f52;
-  margin: 25px 0;
+.intro-content p .dialogue-line {
+  font-style: italic; /* Уже применяется тегом <em>, но для явности */
+  color: #fca3ff; /* Светло-голубой, хорошо читается на темном фоне и выделяется */
+  /* Можно добавить немного другой оттенок, если этот не понравится, например:
+  color: #cceeff;
+  color: #abe0ff;
+  */
+}
+
+/* Стилизация параграфов, которые служат заголовками секций */
+.intro-content p.section-title {
+  font-weight: 600;
+  color: #c8c8c8;
+  margin-top: 25px;
+  margin-bottom: 12px;
+  font-size: 1.05rem;
 }
 
 .input-group {
-  margin-bottom: 20px;
+  margin-bottom: 22px; /* Увеличим отступ */
   display: flex;
   align-items: center;
 }
 
 .input-group label {
-  min-width: 90px; /* Чтобы поля были на одном уровне */
-  margin-right: 10px;
-  font-weight: 600;
-  color: #c0c0c0;
+  min-width: 110px; /* Немного увеличим для длинных меток, как "Телосложение:" */
+  margin-right: 15px; /* Больше пространства между меткой и полем */
+  font-weight: 500; /* Сделаем чуть менее жирным, чем .section-title */
+  color: #b0b0b0; /* Слегка приглушим цвет метки */
+  font-size: 0.9rem;
 }
 
-.input-group input[type="text"] {
+/* Общие стили для текстовых полей и select */
+.input-group input[type="text"],
+.input-group select {
   flex-grow: 1;
-  padding: 10px;
-  font-size: 1rem;
-  background-color: #38383a;
-  border: 1px solid #5f5f63;
+  padding: 12px 15px; /* Увеличим внутренние отступы */
+  font-size: 0.95rem;
+  background-color: #3a3a3d; /* Чуть светлее, чем фон статов */
+  border: 1px solid #555; /* Более заметная рамка */
   color: #eee;
-  border-radius: 5px;
-  box-shadow: inset 0 1px 2px rgba(0,0,0,0.3);
+  border-radius: 6px; /* Более скругленные углы */
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.4);
+  font-family: 'Nunito', 'Segoe UI', sans-serif;
+  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
+
+/* Кастомная стрелка для select */
+.input-group select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23999999%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.4-12.8z%22%2F%3E%3C%2Fsvg%3E');
+  background-repeat: no-repeat;
+  background-position: right 15px center;
+  background-size: 10px 10px; /* Уменьшим размер стрелки */
+  padding-right: 40px; /* Больше места для стрелки */
+}
+
 .input-group input[type="text"]::placeholder {
     color: #888;
 }
 
+/* Стили при фокусе */
+.input-group input[type="text"]:focus,
+.input-group select:focus {
+  outline: none;
+  border-color: #00aeff; /* Цвет рамки при фокусе (как у заголовка) */
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.4), 0 0 0 3px rgba(0, 174, 255, 0.15); /* Более мягкое свечение */
+}
 
+.intro-content hr {
+  border: 0;
+  height: 1px;
+  background-color: #4a4a4e; /* Чуть светлее для лучшей видимости */
+  margin: 30px 0; /* Увеличим вертикальные отступы */
+}
+
+/* Стили для основной кнопки начала */
 #beginJourneyButton {
-  display: block; /* Чтобы кнопка была на всю ширину, если нужно */
+  display: block;
   width: 100%;
-  margin-top: 25px;
-  padding: 15px; /* Крупнее */
-  font-size: 1.1rem; /* Крупнее */
+  margin-top: 35px; /* Больше отступ сверху */
+  padding: 16px; /* Кнопка крупнее */
+  font-size: 1.15rem; /* Шрифт крупнее */
+  font-weight: 700;
+  background-color: #0095dd; /* Яркий синий, но не слишком светлый */
+  border: none;
+  color: #ffffff;
+  border-radius: 6px; /* Согласуем с полями ввода */
+  transition: background-color 0.2s ease-in-out, transform 0.1s ease-out, box-shadow 0.2s ease-out;
+  box-shadow: 0 3px 5px rgba(0, 0, 0, 0.3); /* Добавим тень кнопке */
+}
+
+#beginJourneyButton:hover:enabled {
+  background-color: #007fbf; /* Темнее при наведении */
+  transform: translateY(-2px); /* Чуть больше "подъем" */
+  box-shadow: 0 5px 8px rgba(0, 0, 0, 0.35);
+}
+
+#beginJourneyButton:active:enabled {
+  background-color: #006a9f; /* Еще темнее при нажатии */
+  transform: translateY(0px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+@media (max-width: 480px) {
+  .input-group {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .input-group label {
+    margin-bottom: 5px;
+    min-width: auto; /* убрать фиксированную ширину, чтобы не ломать перенос */
+  }
 }

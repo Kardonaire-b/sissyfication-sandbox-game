@@ -47,11 +47,8 @@ export function renderLog() {
 
     state.logMessages.forEach((entry, index) => {
         const li = document.createElement('li');
-        li.textContent = `День ${entry.timestamp}: ${entry.text}`; // Добавляем день к сообщению
-
-        // Применяем стили в зависимости от типа сообщения
-        // Сначала сбрасываем на дефолтный, потом применяем нужный
-        li.className = 'log-entry log-default'; // Базовый класс для стилизации отдельных записей, если нужно
+        li.textContent = `День ${entry.timestamp}: ${entry.text}`; 
+        li.className = 'log-entry log-default'; // Базовый класс
 
         if (entry.type === 'money-gain') li.classList.replace('log-default', 'log-money-gain');
         else if (entry.type === 'money-loss') li.classList.replace('log-default', 'log-money-loss');
@@ -59,15 +56,16 @@ export function renderLog() {
         else if (entry.type === 'progress-change') li.classList.replace('log-default', 'log-progress-change');
         else if (entry.type === 'discovery') li.classList.replace('log-default', 'log-discovery');
         else if (entry.type === 'important') li.classList.replace('log-default', 'log-important');
-        
-        // Добавляем анимацию только для самой новой записи
-        if (index === 0) {
-             li.classList.add('log-updated'); // Используем существующий класс для анимации
-             setTimeout(() => {
-                li.classList.remove('log-updated');
-             }, 300); // Время должно совпадать с анимацией в CSS
+        // НОВОЕ УСЛОВИЕ:
+        else if (entry.type === 'stepmom-dialogue') {
+            li.classList.replace('log-default', 'log-stepmom-dialogue');
+            // Можно добавить и другой класс, если ее реплики часто являются "открытиями"
+            // li.classList.add('log-discovery'); 
         }
-
+        
+        if (index === 0) {
+            // ... (анимация без изменений) ...
+        }
         ul.appendChild(li);
     });
     el.actionLogOutput.appendChild(ul);
@@ -84,6 +82,7 @@ export function renderLog() {
         else if (latestEntry.type === 'money-loss') el.actionLogOutput.classList.replace('log-default','log-money-loss');
         // ... и так далее для всех типов ...
         else if (latestEntry.type === 'important') el.actionLogOutput.classList.replace('log-default','log-important');
+        else if (latestEntry.type === 'stepmom-dialogue') el.actionLogOutput.classList.replace('log-default','log-discovery');
     }
 
 }
