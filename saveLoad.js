@@ -1,7 +1,7 @@
 import { state } from './state.js';
 import { log, updateStats, updateTabsVisibility, updateProgressDisplay } from './ui.js';
 
-const SAVEGAME_KEY = 'sissySandboxSave_v1.0'; // Ключ для localStorage
+const SAVEGAME_KEY = 'sissySandboxSave_v1.0'; // ключ хранения в localStorage
 export function saveGame() {
     try {
         const stateToSave = JSON.stringify(state);
@@ -23,33 +23,21 @@ export function loadGame() {
         if (savedData) {
             const loadedStateObject = JSON.parse(savedData);
 
-            // Очищаем текущий объект state от всех его свойств
+            // Перезаписываем объект состояния данными из сохранения
             for (const key in state) {
-                if (Object.prototype.hasOwnProperty.call(state, key)) {
-                    delete state[key];
-                }
+                if (Object.prototype.hasOwnProperty.call(state, key)) delete state[key];
             }
-
-            // Копируем все свойства из загруженного объекта в текущий state
-            // Это сохраняет ссылку на оригинальный объект state для всех модулей
             for (const key in loadedStateObject) {
                 if (Object.prototype.hasOwnProperty.call(loadedStateObject, key)) {
                     state[key] = loadedStateObject[key];
                 }
             }
             
-            // После загрузки необходимо полностью обновить UI,
-            // так как состояние могло кардинально измениться.
+            // Обновляем интерфейс в правильном порядке
+            updateTabsVisibility();
+            updateProgressDisplay();
 
-            // Важно: Эти функции должны быть вызваны ДО updateStats,
-            // если updateStats на них полагается для корректного рендеринга чего-либо,
-            // или если они сами не вызываются изнутри updateStats с нужной логикой.
-            // В нашем случае updateStats вызывает updateTabsVisibility и updateProgressDisplay,
-            // но вызов их здесь явно перед updateStats не повредит и гарантирует порядок.
-            updateTabsVisibility(); 
-            updateProgressDisplay(); 
-
-            updateStats(); // Эта функция должна каскадно обновить все остальное: статы, описание тела, кнопки действий
+            updateStats();
             
             log('📂 Игра успешно загружена!', 'important');
         } else {
@@ -60,3 +48,4 @@ export function loadGame() {
         log('❌ Ошибка при загрузке игры. Возможно, данные сохранения повреждены. Подробности в консоли.', 'money-loss');
     }
 }
+

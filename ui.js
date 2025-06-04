@@ -5,6 +5,8 @@ import * as C from './config.js';
 import { CLOTHING_ITEMS, CLOTHING_SLOTS } from './wardrobeConfig.js';
 import { equipItem, unequipItem } from './wardrobeLogic.js';
 
+// Модуль управления пользовательским интерфейсом
+
 let fullBodyDescriptionForModalStore = "";
 let choiceButtonCache = {};
 

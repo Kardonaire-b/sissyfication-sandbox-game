@@ -3,8 +3,6 @@ import { CLOTHING_ITEMS, CLOTHING_SLOTS } from './wardrobeConfig.js';
 import { updateStats } from './ui.js'; // Понадобится для обновления UI после действий
 
 export function equipItem(itemId) {
-    console.log(`wardrobeLogic: equipItem вызван. Текущий state.tab = '${state.tab}'`);
-    console.log(`Попытка надеть: ${itemId}`);
     const itemToEquip = CLOTHING_ITEMS[itemId];
 
     if (!itemToEquip) {
@@ -45,28 +43,20 @@ export function equipItem(itemId) {
 
     // Надеваем новый предмет
     currentOutfit[slotToOccupy] = itemId;
-
-    // TODO: Добавить/обновить state.totalFeelingBonus или подобное, если есть feelingBonus у предмета
-
-    console.log('Текущий наряд:', JSON.parse(JSON.stringify(state.currentOutfit)));
     
     updateStats();
 }
 
 // Внутренняя функция для снятия без полного обновления UI (используется для разрешения конфликтов)
 function unequipItemInternal(slotToUnequip) {
-    console.log(`wardrobeLogic: unequipItem вызван. Текущий state.tab = '${state.tab}'`);
     const itemToRemoveId = state.currentOutfit[slotToUnequip];
     if (itemToRemoveId) {
         // const itemToRemove = CLOTHING_ITEMS[itemToRemoveId];
-        // TODO: Вычесть feelingBonus, если есть
         state.currentOutfit[slotToUnequip] = null;
-        console.log(`Снято (внутренне): ${itemToRemoveId} из слота ${slotToUnequip}`);
     }
 }
 
 export function unequipItem(slotToUnequip) {
-    console.log(`Попытка снять из слота: ${slotToUnequip}`);
     const itemToRemoveId = state.currentOutfit[slotToUnequip];
 
     if (!itemToRemoveId) {
@@ -74,10 +64,7 @@ export function unequipItem(slotToUnequip) {
         return;
     }
     
-    unequipItemInternal(slotToUnequip); // Используем внутреннюю функцию для основной логики снятия
-
-    // TODO: Можно добавить логику авто-надевания базовой одежды, если это необходимо.
-    // Например, если сняли последнюю футболку, надеть стартовую мужскую, если нечего больше.
+    unequipItemInternal(slotToUnequip); // снимаем вещь без обновления UI
 
     updateStats();
 }

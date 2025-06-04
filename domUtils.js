@@ -1,8 +1,10 @@
+// Простая оболочка над querySelector для получения одного элемента
 export function $(selector) {
     const id = selector.startsWith('#') ? selector.slice(1) : selector;
     return document.getElementById(id);
 }
 
+// Возвращает массив всех элементов, подходящих под селектор
 export function $$(selector) {
     return Array.from(document.querySelectorAll(selector));
 }
