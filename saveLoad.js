@@ -1,7 +1,7 @@
 import { state } from './state.js';
 import { log, updateStats, updateTabsVisibility, updateProgressDisplay } from './ui.js';
 
-const SAVEGAME_KEY = 'sissySandboxSave_v1.0'; // ключ хранения в localStorage
+const SAVEGAME_KEY = 'sissySandboxSave_v1.0';
 export function saveGame() {
     try {
         const stateToSave = JSON.stringify(state);
@@ -10,7 +10,6 @@ export function saveGame() {
     } catch (error) {
         console.error("Ошибка при сохранении игры:", error);
         log('❌ Ошибка при сохранении игры. Подробности в консоли.', 'money-loss');
-        // Можно добавить более детальное сообщение для пользователя, если ошибка связана с квотой localStorage
         if (error.name === 'QuotaExceededError') {
             log('❌ Ошибка: недостаточно места для сохранения игры. Попробуйте очистить localStorage.', 'money-loss');
         }
@@ -23,7 +22,6 @@ export function loadGame() {
         if (savedData) {
             const loadedStateObject = JSON.parse(savedData);
 
-            // Перезаписываем объект состояния данными из сохранения
             for (const key in state) {
                 if (Object.prototype.hasOwnProperty.call(state, key)) delete state[key];
             }
@@ -33,7 +31,6 @@ export function loadGame() {
                 }
             }
             
-            // Обновляем интерфейс в правильном порядке
             updateTabsVisibility();
             updateProgressDisplay();
 

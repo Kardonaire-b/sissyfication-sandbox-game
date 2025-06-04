@@ -1,4 +1,4 @@
-/* Основные стили приложения */
+
 body {
   background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
   color: #eee;
@@ -18,17 +18,17 @@ body {
 }
 
 .log-entry {
-    padding: 2px 0; /* небольшой отступ между сообщениями */
+    padding: 2px 0; 
     font-size: 0.9em;
-    opacity: 0.85; /* старые сообщения чуть бледнее */
+    opacity: 0.85; 
 }
-.log-entry:first-child { /* Самое свежее сообщение */
+.log-entry:first-child { 
     opacity: 1;
-    font-weight: bold; /* Выделить самое свежее */
+    font-weight: bold; 
 }
 .log-entry.log-money-gain {
   color: #a1ffb6;
-  /* background-color не нужен, если фон применяется к #action-log-output */
+  
 }
 .log-entry.log-important {
   font-weight: bold;
@@ -53,71 +53,71 @@ body {
   max-width: 800px;
   width: 100%;
   background: #2c2c2e;
-  /* Чуть светлее для контраста с body */
+  
   padding: 25px;
-  /* Увеличены отступы */
+  
   border-radius: 12px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.65);
-  /* Усиленная тень */
+  
 }
 
 #stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-  /* Немного шире статы */
+  
   gap: 15px;
-  /* Увеличен gap */
+  
   margin-bottom: 25px;
-  /* Увеличен отступ */
+  
 }
 
 .stat {
   background: #38383a;
-  /* Немного изменен фон статов */
+  
   padding: 14px;
   border-radius: 8px;
   text-align: center;
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.4), 0 1px 1px rgba(255, 255, 255, 0.05);
-  /* Легкий внешний блик */
+  
 }
 
 .stat-title {
   font-family: 'Roboto', 'Segoe UI', sans-serif;
-  /* Шрифт для заголовков статов */
+  
   font-size: 0.8rem;
-  /* Чуть меньше для баланса */
+  
   font-weight: 600;
   color: #b0b0b0;
-  /* Менее яркий цвет */
+  
   margin-bottom: 6px;
-  /* Увеличен отступ */
+  
   display: flex;
   align-items: center;
   justify-content: center;
   text-transform: uppercase;
-  /* Все заглавные для стиля */
+  
   letter-spacing: 0.5px;
 }
 
 .stat-title .icon {
   margin-right: 6px;
   font-size: 1.1em;
-  /* Иконки чуть крупнее относительно текста заголовка */
+  
 }
 
 .stat-value {
   font-family: 'Roboto', 'Segoe UI', sans-serif;
   font-size: 1.05rem;
-  /* Размер значения стата */
+  
   font-weight: 700;
   color: #f0f0f0;
 }
 
 .bar-wrap {
   height: 10px;
-  /* Бар чуть толще */
+  
   background: #222;
-  /* Более темный фон бара */
+  
   border-radius: 5px;
   overflow: hidden;
   margin-top: 8px;
@@ -128,14 +128,14 @@ body {
   height: 100%;
   width: 0;
   transition: width .4s ease-in-out;
-  /* Более плавная анимация бара */
+  
 }
 
 #test-bar {
   background: #5c97ff;
 }
 
-/* Чуть изменены цвета баров */
+
 #est-bar {
   background: #ff6ab4;
 }
@@ -147,17 +147,17 @@ body {
 #tabs {
   display: flex;
   margin-bottom: 25px;
-  /* Увеличен отступ */
+  
 }
 
 .tab-button {
   flex: 1;
   padding: 12px 10px;
-  /* Паддинги для вкладок */
+  
   background: #3a3a3c;
   border: none;
   color: #c0c0c0;
-  /* Цвет неактивной вкладки */
+  
   cursor: pointer;
   font-family: 'Roboto', 'Segoe UI', sans-serif;
   font-size: 1rem;
@@ -166,7 +166,7 @@ body {
   transition: background .2s, color .2s, border-bottom-color .2s;
   margin: 0 3px;
   border-radius: 6px 6px 0 0;
-  /* Скругление углов */
+  
 }
 
 .tab-button:first-child {
@@ -179,11 +179,11 @@ body {
 
 .tab-button.selected {
   background: #4f4f52;
-  /* Фон активной вкладки */
+  
   color: #ffffff;
-  /* Цвет текста активной вкладки */
+  
   border-bottom-color: #00aeff;
-  /* Новый акцентный цвет (голубой) */
+  
 }
 
 .tab-button:hover:not(.selected) {
@@ -194,26 +194,26 @@ body {
 #body-desc-container {
   background: #38383a;
   padding: 20px;
-  /* Увеличены отступы */
+  
   border-radius: 8px;
   margin-bottom: 25px;
-  /* Увеличен отступ */
+  
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 #body-desc {
   white-space: pre-wrap;
   line-height: 1.75;
-  /* Увеличена высота строки */
+  
   font-style: italic;
   font-size: 1rem;
-  /* Увеличен шрифт описания */
+  
   color: #e0e0e0;
 }
 
 @keyframes fadeInLog {
 
-  /* Анимация для лога */
+  
   from {
     opacity: 0.6;
     transform: translateY(-2px);
@@ -228,25 +228,25 @@ body {
 #action-log-output {
   background: #333335;
   padding: 14px;
-  /* Увеличены отступы */
+  
   border-radius: 6px;
   margin-bottom: 20px;
-  /* Увеличен отступ */
+  
   text-align: center;
   font-style: italic;
   min-height: 1.4em;
-  /* Чуть больше минимальная высота */
+  
   color: #ddd;
   transition: background-color 0.3s, color 0.3s, opacity 0.2s, transform 0.2s;
   font-size: 0.95rem;
 }
 
 #action-log-output.log-updated {
-  /* Класс для анимации */
+  
   animation: fadeInLog 0.3s ease-out;
 }
 
-/* Стили для разных типов логов остаются теми же, можно их настроить под новую палитру если нужно */
+
 #action-log-output.log-default {
   color: #ddd;
 }
@@ -293,20 +293,20 @@ body {
   display: block;
   width: 100%;
   padding: 14px;
-  /* Увеличен паддинг */
+  
   margin: 10px 0;
-  /* Увеличен отступ */
+  
   background: #4a4a4e;
-  /* Новый фон кнопок */
+  
   border: 1px solid #5f5f63;
-  /* Обводка */
+  
   border-radius: 6px;
   color: #eee;
   cursor: pointer;
   font-family: 'Roboto', 'Segoe UI', sans-serif;
-  /* Шрифт для кнопок */
+  
   font-size: 1rem;
-  /* Размер шрифта */
+  
   font-weight: 600;
   transition: background .2s, transform .1s, box-shadow .2s;
   box-sizing: border-box;
@@ -319,7 +319,7 @@ body {
   border-color: #4f4f52;
   cursor: not-allowed;
   opacity: .65;
-  /* Чуть менее прозрачный */
+  
   box-shadow: none;
   color: #999;
 }
@@ -336,7 +336,7 @@ body {
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
 }
 
-/* СТИЛИ МОДАЛЬНОГО ОКНА */
+
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -344,12 +344,12 @@ body {
   width: 100%;
   height: 100%;
   background-color: rgba(0, 0, 0, 0.7);
-  /* Полупрозрачный фон */
+  
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
-  /* Поверх всего остального */
+  
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.3s ease, visibility 0.3s ease;
@@ -362,17 +362,17 @@ body {
 
 .modal-content {
   background: #38383a;
-  /* Тот же фон, что у body-desc-container */
+  
   padding: 25px;
   border-radius: 12px;
   box-shadow: 0 5px 25px rgba(0, 0, 0, 0.5);
   width: 90%;
   max-width: 700px;
-  /* Ограничение ширины */
+  
   max-height: 85vh;
-  /* Ограничение высоты */
+  
   overflow-y: auto;
-  /* Прокрутка, если контент не помещается */
+  
   position: relative;
   color: #e0e0e0;
   transform: scale(0.95);
@@ -400,7 +400,7 @@ body {
   background: none;
   border: none;
   font-size: 2.2rem;
-  /* Крупнее крестик */
+  
   color: #aaa;
   cursor: pointer;
   line-height: 1;
@@ -414,10 +414,10 @@ body {
 
 #modal-body-text-content {
   white-space: pre-wrap;
-  /* Сохраняем переносы строк из JS */
+  
   line-height: 1.75;
   font-size: 0.95rem;
-  /* Чуть меньше основного для компактности */
+  
 }
 
 #modal-body-text-content p {
