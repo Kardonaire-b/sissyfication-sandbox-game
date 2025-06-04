@@ -10,43 +10,110 @@ let choiceButtonCache = {};
 
 
 export function log(msg, type = 'default') {
-    el.actionLogOutput.textContent = msg;
+    // 1. Создаем объект сообщения
+    const newLogEntry = {
+        text: msg,
+        type: type,
+        timestamp: state.day // Или более точное время, если нужно
+    };
+
+    // 2. Добавляем новое сообщение в начало массива
+    state.logMessages.unshift(newLogEntry);
+
+    // 3. Ограничиваем количество сообщений
+    if (state.logMessages.length > state.maxLogMessages) {
+        state.logMessages.length = state.maxLogMessages; // Обрезаем массив до максимальной длины
+    }
+
+    // 4. Рендерим лог
+    renderLog();
+}
+
+function renderLog() {
+    el.actionLogOutput.innerHTML = ''; // Очищаем предыдущее содержимое
+
+    if (state.logMessages.length === 0) {
+        el.actionLogOutput.textContent = "Журнал пуст."; // Или какое-то стартовое сообщение
+        el.actionLogOutput.className = 'log-default'; // Сброс классов
+        return;
+    }
+
+    // Создаем список для сообщений (семантически лучше, чем просто div'ы)
+    const ul = document.createElement('ul');
+    ul.style.listStyleType = 'none'; // Убираем маркеры списка
+    ul.style.padding = '0';
+    ul.style.margin = '0';
+
+
+    state.logMessages.forEach((entry, index) => {
+        const li = document.createElement('li');
+        li.textContent = `День ${entry.timestamp}: ${entry.text}`; // Добавляем день к сообщению
+
+        // Применяем стили в зависимости от типа сообщения
+        // Сначала сбрасываем на дефолтный, потом применяем нужный
+        li.className = 'log-entry log-default'; // Базовый класс для стилизации отдельных записей, если нужно
+
+        if (entry.type === 'money-gain') li.classList.replace('log-default', 'log-money-gain');
+        else if (entry.type === 'money-loss') li.classList.replace('log-default', 'log-money-loss');
+        else if (entry.type === 'hormone-change') li.classList.replace('log-default', 'log-hormone-change');
+        else if (entry.type === 'progress-change') li.classList.replace('log-default', 'log-progress-change');
+        else if (entry.type === 'discovery') li.classList.replace('log-default', 'log-discovery');
+        else if (entry.type === 'important') li.classList.replace('log-default', 'log-important');
+        
+        // Добавляем анимацию только для самой новой записи
+        if (index === 0) {
+             li.classList.add('log-updated'); // Используем существующий класс для анимации
+             setTimeout(() => {
+                li.classList.remove('log-updated');
+             }, 300); // Время должно совпадать с анимацией в CSS
+        }
+
+        ul.appendChild(li);
+    });
+    el.actionLogOutput.appendChild(ul);
+    
+    const latestEntry = state.logMessages[0];
     const classesToRemove = Array.from(el.actionLogOutput.classList).filter(
-        cls => cls.startsWith('log-') && cls !== 'log-default' && cls !== 'log-updated'
+        cls => cls.startsWith('log-') && cls !== 'log-default' && !cls.includes('entry') // не удаляем entry-специфичные классы
     );
     el.actionLogOutput.classList.remove(...classesToRemove);
-    el.actionLogOutput.classList.add('log-default');
+    el.actionLogOutput.classList.add('log-default'); // Сначала базовый
 
-    if (type === 'money-gain') el.actionLogOutput.classList.replace('log-default','log-money-gain');
-    else if (type === 'money-loss') el.actionLogOutput.classList.replace('log-default','log-money-loss');
-    else if (type === 'hormone-change') el.actionLogOutput.classList.replace('log-default','log-hormone-change');
-    else if (type === 'progress-change') el.actionLogOutput.classList.replace('log-default','log-progress-change');
-    else if (type === 'discovery') el.actionLogOutput.classList.replace('log-default','log-discovery');
-    else if (type === 'important') el.actionLogOutput.classList.replace('log-default','log-important');
+    if (latestEntry) { // Проверка, что массив не пуст
+        if (latestEntry.type === 'money-gain') el.actionLogOutput.classList.replace('log-default','log-money-gain');
+        else if (latestEntry.type === 'money-loss') el.actionLogOutput.classList.replace('log-default','log-money-loss');
+        // ... и так далее для всех типов ...
+        else if (latestEntry.type === 'important') el.actionLogOutput.classList.replace('log-default','log-important');
+    }
 
-    el.actionLogOutput.classList.add('log-updated');
-    setTimeout(() => {
-        el.actionLogOutput.classList.remove('log-updated');
-    }, 300);
 }
 
 
 export function updateTabsVisibility() {
+    if (!Array.isArray(el.tabs)) {
+        console.error('el.tabs is not an array');
+        return;
+    }
+
     let tabSwitched = false;
+    const DEFAULT_TAB = 'income';
+
     el.tabs.forEach(btn => {
         if (btn.dataset.tab === 'hormone') {
             const isHormoneTabVisible = state.hormonesUnlocked;
             btn.style.display = isHormoneTabVisible ? '' : 'none';
 
             if (!isHormoneTabVisible && state.tab === 'hormone') {
-                state.tab = 'income';
+                state.tab = DEFAULT_TAB;
                 tabSwitched = true;
             }
         }
+        
+        // Обновляем классы сразу в том же цикле
+        if (tabSwitched) {
+            btn.classList.toggle('selected', btn.dataset.tab === state.tab);
+        }
     });
-    if (tabSwitched) {
-        el.tabs.forEach(tb => tb.classList.toggle('selected', tb.dataset.tab === state.tab));
-    }
 }
 
 export function updateProgressDisplay() {
