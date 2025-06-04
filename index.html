@@ -14,7 +14,36 @@
 </head>
 
 <body>
-  <div id="game-container">
+  <div id="intro-screen">
+    <div class="intro-content">
+      <h1>Новая Глава</h1>
+      <p>Ты стоишь на пороге новой жизни. После некоторых семейных перестановок, ты переезжаешь в другой город, к своей мачехе, Анжеле Викторовне. Она всегда была... эксцентричной, но в последнее время ее забота о тебе кажется особенно настойчивой.</p>
+      <p>"Я так рада, что ты будешь жить со мной, милый(ая)!" – сказала она по телефону голосом, полным энтузиазма, который почему-то заставил тебя насторожиться. – "У меня на тебя большие планы!"</p>
+      <hr>
+      <p>Как тебя зовут?</p>
+      <div class="input-group">
+        <label for="playerNameInput">Имя:</label>
+        <input type="text" id="playerNameInput" value="Алекс" placeholder="Твоё имя">
+      </div>
+      <div class="input-group">
+        <label for="playerSurnameInput">Фамилия:</label>
+        <input type="text" id="playerSurnameInput" value="Иванов" placeholder="Твоя фамилия">
+      </div>
+      <hr>
+      <p>Какое у тебя телосложение?</p>
+      <div class="input-group">
+        <label for="bodyTypeSelect">Телосложение:</label>
+        <select id="bodyTypeSelect" class="choice-select"> {/* Можно добавить класс для стилизации, если нужно */}
+            <option value="average" selected>Обычное</option>
+            <option value="slim">Стройное</option>
+            <option value="athletic">Атлетичное</option>
+        </select>
+      </div>
+      <button id="beginJourneyButton" class="choice-button">Начать новую жизнь в доме мачехи</button>
+    </div>
+  </div>
+
+  <div id="game-container" style="display: none;">
     <div id="stats">
       <div class="stat">
         <div class="stat-title"><span class="icon">🗓️</span>День</div>

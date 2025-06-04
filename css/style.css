@@ -461,3 +461,86 @@ body {
     width: auto; 
     display: inline-block; 
 }
+
+#intro-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000; /* Выше чем модальное окно, если понадобится */
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.intro-content {
+  background: #2c2c2e;
+  padding: 30px 40px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+  max-width: 700px;
+  width: 100%;
+  text-align: left;
+  color: #e0e0e0;
+}
+
+.intro-content h1 {
+  text-align: center;
+  color: #00aeff; /* Или любой другой акцентный цвет */
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-family: 'Roboto', sans-serif;
+}
+
+.intro-content p {
+  font-size: 1rem;
+  line-height: 1.7;
+  margin-bottom: 15px;
+}
+
+.intro-content hr {
+  border: 0;
+  height: 1px;
+  background-color: #4f4f52;
+  margin: 25px 0;
+}
+
+.input-group {
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+}
+
+.input-group label {
+  min-width: 90px; /* Чтобы поля были на одном уровне */
+  margin-right: 10px;
+  font-weight: 600;
+  color: #c0c0c0;
+}
+
+.input-group input[type="text"] {
+  flex-grow: 1;
+  padding: 10px;
+  font-size: 1rem;
+  background-color: #38383a;
+  border: 1px solid #5f5f63;
+  color: #eee;
+  border-radius: 5px;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.3);
+}
+.input-group input[type="text"]::placeholder {
+    color: #888;
+}
+
+
+#beginJourneyButton {
+  display: block; /* Чтобы кнопка была на всю ширину, если нужно */
+  width: 100%;
+  margin-top: 25px;
+  padding: 15px; /* Крупнее */
+  font-size: 1.1rem; /* Крупнее */
+}

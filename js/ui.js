@@ -29,7 +29,7 @@ export function log(msg, type = 'default') {
     renderLog();
 }
 
-function renderLog() {
+export function renderLog() {
     el.actionLogOutput.innerHTML = ''; // Очищаем предыдущее содержимое
 
     if (state.logMessages.length === 0) {

@@ -33,10 +33,15 @@ function getInitialOutfit() {
 }
 
 export const state = {
+  introCompleted: false,     // НОВЫЙ: Флаг завершения вступления
+  playerName: "Райан",       // НОВЫЙ: Имя игрока (дефолт)
+  playerSurname: "Коллстон",   // НОВЫЙ: Фамилия игрока (дефолт)
+  playerBodyType: "average",
+
   day: 0,
   money: 50,
-  testosterone: 50,
-  estrogen: BASE_E,
+  testosterone: 50,          // Оставим пока без выбора для простоты первой итерации
+  estrogen: BASE_E,          // Оставим пока без выбора
   emaT: 50,
   emaE: BASE_E,
   progress: 0,
@@ -53,5 +58,7 @@ export const state = {
   recentBodyChanges: [],
 
   logMessages: [],
-  maxLogMessages: 5,
+  maxLogMessages: 7, // Можно немного увеличить для сюжетных сообщений
+  
+  stepMotherInfluence: 0, // НОВЫЙ: Задел на будущее для влияния мачехи
 };

@@ -8,6 +8,14 @@ export function $$(selector) {
 }
 
 export const el = {
+    // --- Элементы вступления ---
+    introScreen: $('intro-screen'),
+    playerNameInput: $('playerNameInput'),
+    playerSurnameInput: $('playerSurnameInput'),
+    bodyTypeSelect: $('bodyTypeSelect'),
+    beginJourneyButton: $('beginJourneyButton'),
+    gameContainer: $('game-container'), // Для скрытия/показа
+
     day: $('day'),
     money: $('money'),
     test: $('testosterone'),

@@ -2,16 +2,17 @@ import { state } from './state.js';
 import * as C from './config.js';
 import { nextDay, checkHormoneUnlock } from './gameLogic.js';
 import { log } from './ui.js';
-import { saveGame, loadGame } from './saveLoad.js';
+import { saveGame, loadGame, SAVEGAME_KEY } from './saveLoad.js';
 
 export const actions = [
     {
         id: 'work',
         text: `Работать`, cost: 0, tab: 'income',
         handler: () => {
-            state.money += C.WORK_INCOME;
-            nextDay();
-            log(`Ты поработала и заработала ${C.WORK_INCOME}${C.CURRENCY_SYMBOL}!`, 'money-gain');
+        state.money += C.WORK_INCOME;
+        nextDay();
+        // ИСПОЛЬЗУЕМ ИМЯ:
+        log(`${state.playerName} поработал и заработал ${C.WORK_INCOME}${C.CURRENCY_SYMBOL}!`, 'money-gain');
         }
     },
     {
@@ -84,7 +85,7 @@ export const actions = [
         handler: () => {
             if (!state.hormonesUnlocked) {
                 state.discoveryPoints = Math.min(C.MAX_DISCOVERY_POINTS, state.discoveryPoints + C.INTERNET_DISCOVERY_GAIN);
-                let msg = `Ты провел(а) время в сети, исследуя разные темы. (Очки Открытий +${C.INTERNET_DISCOVERY_GAIN})`;
+                let msg = `Ты провел время в сети, исследуя разные темы. (Очки Открытий +${C.INTERNET_DISCOVERY_GAIN})`;
                 if (state.discoveryPoints > 15 && Math.random() < 0.25 && !state.hormonesUnlocked) {
                     msg += " Некоторые обсуждения о гендерной идентичности и самовыражении показались особенно интересными...";
                 }
@@ -119,7 +120,41 @@ export const actions = [
         id: 'load_game',
         text: 'Загрузить игру', cost: 0, tab: 'other',
         handler: () => {
-            loadGame();
+            // ИЗМЕНЕНИЕ: Улучшаем обработчик загрузки
+            if (localStorage.getItem(SAVEGAME_KEY)) { // Проверяем, есть ли сохранение
+                if (window.confirm("Загрузить сохраненную игру? Текущий несохраненный прогресс будет потерян.")) {
+                    if (loadGame()) { // loadGame из saveLoad.js возвращает true при успехе
+                        log('🔄 Загрузка сохраненной игры...', 'important');
+                        // Небольшая задержка, чтобы лог успел отобразиться перед перезагрузкой
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 700); 
+                    }
+                    // Сообщение об ошибке загрузки обрабатывается внутри loadGame
+                } else {
+                    log('Загрузка игры отменена.', 'default');
+                }
+            } else {
+                log('❌ Нет сохраненной игры для загрузки.', 'money-loss');
+            }
+        }
+    },
+    {
+        id: 'reset_game',
+        text: 'Начать игру заново (сброс)', // Более понятный текст
+        cost: 0, 
+        tab: 'other',
+        handler: () => {
+            if (window.confirm("Вы уверены, что хотите сбросить весь прогресс и начать игру заново? Это действие необратимо!")) {
+                log('🔄 Прогресс сброшен. Перезагрузка для начала новой игры...', 'important');
+                localStorage.removeItem(SAVEGAME_KEY);
+                // Небольшая задержка, чтобы лог успел отобразиться перед перезагрузкой
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500); // 1.5 секунды
+            } else {
+                log('Сброс игры отменен.', 'default');
+            }
         }
     }
 ];
