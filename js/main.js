@@ -78,14 +78,16 @@ function initializeGame() {
 
     el.tabs.forEach(btn => {
         btn.addEventListener('click', () => {
+            // Пропускаем клик по неактивной вкладке
             if (btn.dataset.tab === 'hormone' && !state.hormonesUnlocked) return;
+            
+            // 1. Обновляем состояние текущей вкладки
             state.tab = btn.dataset.tab;
-            el.tabs.forEach(b => b.classList.toggle('selected', b === btn));
-            if (state.tab === 'wardrobe') {
-                renderWardrobeUI();
-            } else {
-                renderChoices();
-            }
+            
+            // 2. Вызываем главную функцию обновления, которая сделает всё остальное:
+            //    - обновит классы вкладок
+            //    - перерисует нужный контент (действия или гардероб)
+            updateStats();
         });
     });
 
