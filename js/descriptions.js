@@ -1,108 +1,110 @@
-// --- START OF FILE js/descriptions.js ---
-
 import * as C from './config.js';
 import { state } from './state.js';
 import { CLOTHING_ITEMS, CLOTHING_SLOTS } from './wardrobeConfig.js';
-
-// Обрати внимание на 'export' перед каждой функцией, которую будет использовать ui.js
+import { t } from './i18n.js';
 
 export function getVoiceDescription(T, E, P) {
     let voicePitch = C.VOICE_PITCH_BASE_HZ - (T - E) * C.VOICE_PITCH_HORMONE_FACTOR;
     voicePitch = Math.max(80, Math.min(300, voicePitch));
     let specificDesc = "";
     if (E - T > C.VOICE_E_DOMINANT_THRESHOLD_FOR_CHANGE_2 && P > C.VOICE_P_THRESHOLD_FOR_CHANGE_2) {
-        specificDesc = "Звучит заметно выше, нежнее, почти неузнаваемо.";
+        specificDesc = t('descriptions.voice_desc.high');
     } else if (E - T > C.VOICE_E_DOMINANT_THRESHOLD_FOR_CHANGE_1) {
-        specificDesc = "Становится мягче и выше, теряет грубые нотки.";
+        specificDesc = t('descriptions.voice_desc.soft');
     } else if (T - E > C.VOICE_T_DOMINANT_THRESHOLD) {
-        specificDesc = "Низкий, с бархатными мужскими обертонами.";
+        specificDesc = t('descriptions.voice_desc.low');
     } else {
-        specificDesc = "Тембр на грани, андрогинный, интригующий.";
+        specificDesc = t('descriptions.voice_desc.androgynous');
     }
-    return `🎤 Голос: ${voicePitch.toFixed(0)} Гц. ${specificDesc}`;
+    return t('descriptions.voice', { pitch: voicePitch.toFixed(0), desc: specificDesc });
 }
 
 export function getSkinDescription(T, E, P, E_is_dominant, T_is_dominant) {
-    let skinDescText = "💧 Кожа: ";
+    let skinDescText = "";
     if (E_is_dominant && E > C.SKIN_E_DOMINANT_THRESHOLD_FOR_SOFTNESS) {
-        skinDescText += P > C.SKIN_P_THRESHOLD_SOFT_2 ? "Невероятно гладкая, шелковистая на ощупь, поры почти невидимы. Лёгкий румянец." :
-            P > C.SKIN_P_THRESHOLD_SOFT_1 ? "Становится ощутимо мягче, нежнее, уходит жирный блеск." :
-            "Появляется мягкость, менее жирная.";
+        skinDescText += P > C.SKIN_P_THRESHOLD_SOFT_2 ? t('descriptions.skin_desc.silky') :
+            P > C.SKIN_P_THRESHOLD_SOFT_1 ? t('descriptions.skin_desc.soft') :
+            t('descriptions.skin_desc.getting_soft');
         if (E > C.SKIN_E_THRESHOLD_FOR_THINNING && P > C.SKIN_P_THRESHOLD_FOR_THINNING) {
-            skinDescText += " Кажется тоньше, венки на запястьях и груди могут быть видны отчетливее.";
+            skinDescText += t('descriptions.skin_desc.thinning_add');
         }
     } else if (T_is_dominant && T > C.SKIN_T_DOMINANT_THRESHOLD_FOR_ROUGHNESS) {
-        skinDescText += "Плотная, возможно, более склонная к жирности и акне. Поры заметны.";
+        skinDescText += t('descriptions.skin_desc.rough');
     } else {
-        skinDescText += "Обычная, но ты начинаешь замечать тонкие изменения в её текстуре.";
+        skinDescText += t('descriptions.skin_desc.normal');
     }
-    return skinDescText;
+    return t('descriptions.skin', { desc: skinDescText });
 }
 
 export function getBodyHairDescription(T, E, P, E_is_dominant, T_is_dominant) {
-    let bodyHairDescText = "🌿 Волосы на теле/лице: ";
+    let bodyHairDescText = "";
     if (E_is_dominant && E > C.BODYHAIR_E_DOMINANT_THRESHOLD_FOR_REDUCTION && P > C.BODYHAIR_P_THRESHOLD_FOR_REDUCTION) {
-        bodyHairDescText += "Рост волос на теле замедлился, они стали тоньше и светлее. ";
+        bodyHairDescText += t('descriptions.body_hair_desc.reduced');
         if (T < C.BODYHAIR_T_THRESHOLD_FOR_FACIAL_PUBESCENCE && P > C.BODYHAIR_P_THRESHOLD_FOR_FACIAL_PUBESCENCE) {
-            bodyHairDescText += "Щетина на лице почти не растет, или стала пушковой.";
+            bodyHairDescText += t('descriptions.body_hair_desc.peach_fuzz');
         } else if (T < C.BODYHAIR_T_THRESHOLD_FOR_FACIAL_SLOWDOWN) {
-            bodyHairDescText += "Рост щетины замедлен, бритьё требуется реже.";
+            bodyHairDescText += t('descriptions.body_hair_desc.slowed_shave');
         }
     } else if (T_is_dominant && T > C.BODYHAIR_T_DOMINANT_THRESHOLD_FOR_THICK) {
-        bodyHairDescText += "Активный рост волос на теле и лице, густая щетина.";
+        bodyHairDescText += t('descriptions.body_hair_desc.thick');
     } else {
-        bodyHairDescText += "Без особых изменений.";
+        bodyHairDescText += t('descriptions.body_hair_desc.normal');
     }
-    return bodyHairDescText;
+    return t('descriptions.body_hair', { desc: bodyHairDescText });
 }
 
 export function getBreastDescription(E, P) {
-    let breastDescText = "🍈 Грудь: ";
     let breastDevStageRaw = 0;
     if (E > C.BREAST_E_THRESHOLD_START_BUDDING && P > C.BREAST_P_THRESHOLD_START_BUDDING) {
         breastDevStageRaw = 1 + (Math.max(0, E - C.BREAST_E_THRESHOLD_START_BUDDING) / C.BREAST_E_UNITS_PER_STAGE) *
             (C.BREAST_PROGRESS_FACTOR_BASE + P / C.BREAST_PROGRESS_FACTOR_SCALE);
     }
     const currentBreastDevStage = Math.min(C.BREAST_MAX_DEV_STAGE, Math.floor(breastDevStageRaw));
-    if (currentBreastDevStage === 0) breastDescText += "Абсолютно плоская.";
-    else if (currentBreastDevStage === 1) breastDescText += `Появились болезненные уплотнения под сосками (E:${E.toFixed(0)}, P:${P}%).`;
-    else if (currentBreastDevStage === 2) breastDescText += `Небольшая, но оформленная (размер A). Соски увеличились. (E:${E.toFixed(0)}, P:${P}%).`;
-    else if (currentBreastDevStage === 3) breastDescText += `Среднего размера, упругая (ближе к B). (E:${E.toFixed(0)}, P:${P}%).`;
-    else breastDescText += `Пышная, мягкая, соблазнительная (размер C+!). (E:${E.toFixed(0)}, P:${P}%).`;
-    return breastDescText;
+    
+    let desc;
+    const replacements = { E: E.toFixed(0), P: P.toFixed(0) };
+    if (currentBreastDevStage === 0) desc = t('descriptions.breast_desc.flat');
+    else if (currentBreastDevStage === 1) desc = t('descriptions.breast_desc.budding', replacements);
+    else if (currentBreastDevStage === 2) desc = t('descriptions.breast_desc.size_a', replacements);
+    else if (currentBreastDevStage === 3) desc = t('descriptions.breast_desc.size_b', replacements);
+    else desc = t('descriptions.breast_desc.size_c', replacements);
+    
+    return t('descriptions.breast', { desc: desc });
 }
 
 export function getFigureDescription(T, E, P, E_is_dominant, T_is_dominant) {
-    let figureDescText = "🍑 Фигура: ";
     const whr_change_potential = C.FIGURE_WHR_BASE - C.FIGURE_WHR_TARGET_FEMALE;
     let whr_progress_to_female_target = 0;
     if (E_is_dominant && E > C.FIGURE_E_DOMINANT_THRESHOLD_FOR_WHR_CHANGE) {
         whr_progress_to_female_target = Math.min(1, (E - C.FIGURE_E_DOMINANT_THRESHOLD_FOR_WHR_CHANGE) / C.FIGURE_E_UNITS_FOR_WHR_PROGRESS) * (P / C.MAX_PROGRESS);
     }
     const current_whr = (C.FIGURE_WHR_BASE - whr_change_potential * whr_progress_to_female_target).toFixed(2);
-    figureDescText += `Талия/бедра: ${current_whr}. `;
+    
+    let desc = "";
     if (E_is_dominant && E > C.FIGURE_E_DOMINANT_THRESHOLD_FOR_FAT_REDISTRIBUTION && P > C.FIGURE_P_THRESHOLD_FOR_FAT_REDISTRIBUTION) {
-        figureDescText += "Жир перераспределяется на бедра и ягодицы. Талия изящнее.";
+        desc = t('descriptions.figure_desc.redistribution');
     } else if (T_is_dominant && T > C.FIGURE_T_DOMINANT_THRESHOLD_FOR_MALE_FAT) {
-        figureDescText += "Жир в области живота, фигура маскулинная.";
+        desc = t('descriptions.figure_desc.masculine');
     } else if (P > C.FIGURE_P_THRESHOLD_FOR_SUBTLE_SOFTENING) {
-        figureDescText += "Контуры тела неуловимо смягчаются.";
+        desc = t('descriptions.figure_desc.softening');
     }
-    return figureDescText;
+    
+    return t('descriptions.figure', { whr: current_whr, desc: desc });
 }
 
 export function getMuscleDescription(T, E, P, E_is_dominant) {
-    let muscleDescText = "💪 Мышцы: ";
+    let desc = "";
+    const replacements = { T: T.toFixed(0) };
     if (T > C.MUSCLE_T_HIGH_THRESHOLD_FOR_BULK && !E_is_dominant) {
-        muscleDescText += P < C.MUSCLE_P_THRESHOLD_FOR_BULK_SOFTENING ? "Развитые, рельефные." : "Крепкие, но теряют твердость.";
+        desc = P < C.MUSCLE_P_THRESHOLD_FOR_BULK_SOFTENING ? t('descriptions.muscle_desc.defined') : t('descriptions.muscle_desc.strong_soft');
     } else if (T > C.MUSCLE_T_MID_THRESHOLD_FOR_TONE && !E_is_dominant) {
-        muscleDescText += "Умеренно развиты, в тонусе.";
+        desc = t('descriptions.muscle_desc.toned');
     } else if (E_is_dominant && E > C.MUSCLE_E_DOMINANT_THRESHOLD_FOR_LOSS) {
-        muscleDescText += `Уменьшились, стали мягче. Сила снизилась (T:${T.toFixed(0)}).`;
+        desc = t('descriptions.muscle_desc.reduced', replacements);
     } else {
-        muscleDescText += `Слабые, без рельефа. (T:${T.toFixed(0)})`;
+        desc = t('descriptions.muscle_desc.weak', replacements);
     }
-    return muscleDescText;
+    return t('descriptions.muscle', { desc: desc });
 }
 
 export function getPenisDescription(T, E, P, E_is_dominant) {
@@ -110,18 +112,24 @@ export function getPenisDescription(T, E, P, E_is_dominant) {
         (C.GENITAL_PROGRESS_ACCELERATOR_BASE + P / C.GENITAL_PROGRESS_ACCELERATOR_SCALE);
     penisShrinkageFactor = Math.max(0, penisShrinkageFactor);
     const penisLengthCm = Math.max(C.GENITAL_PENIS_MIN_CM, C.GENITAL_PENIS_BASE_CM - penisShrinkageFactor).toFixed(1);
-    let erectionQuality = 'нормальная';
-    if (T < C.GENITAL_ERECTION_T_LOW_THRESHOLD_ALMOST_NONE && E_is_dominant && P > C.GENITAL_ERECTION_P_LOW_THRESHOLD_ALMOST_NONE) erectionQuality = 'почти отсутствует';
-    else if (T < C.GENITAL_ERECTION_T_LOW_THRESHOLD_VERY_WEAK || (E_is_dominant && E > C.GENITAL_ERECTION_E_HIGH_THRESHOLD_VERY_WEAK)) erectionQuality = 'очень слабая';
-    else if (T < C.GENITAL_ERECTION_T_LOW_THRESHOLD_WEAK || (E_is_dominant && E > C.GENITAL_ERECTION_E_HIGH_THRESHOLD_WEAK)) erectionQuality = 'снижена, менее твердая';
+
+    let qualityKey;
+    if (T < C.GENITAL_ERECTION_T_LOW_THRESHOLD_ALMOST_NONE && E_is_dominant && P > C.GENITAL_ERECTION_P_LOW_THRESHOLD_ALMOST_NONE) qualityKey = 'none';
+    else if (T < C.GENITAL_ERECTION_T_LOW_THRESHOLD_VERY_WEAK || (E_is_dominant && E > C.GENITAL_ERECTION_E_HIGH_THRESHOLD_VERY_WEAK)) qualityKey = 'very_weak';
+    else if (T < C.GENITAL_ERECTION_T_LOW_THRESHOLD_WEAK || (E_is_dominant && E > C.GENITAL_ERECTION_E_HIGH_THRESHOLD_WEAK)) qualityKey = 'weak';
+    else qualityKey = 'normal';
+    
+    const erectionQuality = t(`descriptions.genital_desc.erection_quality.${qualityKey}`);
+    const erectionDesc = t('descriptions.genital_desc.erection', { quality: erectionQuality });
+    
     let penisDescText;
     if (P > C.GENITAL_P_THRESHOLD_FOR_CLIT_TEXT && E_is_dominant && parseFloat(penisLengthCm) < C.GENITAL_PENIS_CLIT_TRANSITION_CM) {
-        penisDescText = `🎀 Клитор: ${penisLengthCm} см. Стал очень маленьким и чувствительным. `;
+        penisDescText = t('descriptions.clitoris', { length: penisLengthCm, desc: t('descriptions.genital_desc.penis_sensitive') });
     } else {
-        penisDescText = `🍆 Пенис: ${penisLengthCm} см. `;
+        penisDescText = t('descriptions.penis', { length: penisLengthCm, desc: "" });
     }
-    penisDescText += `Эрекция: ${erectionQuality}.`;
-    return penisDescText;
+
+    return `${penisDescText} ${erectionDesc}`;
 }
 
 export function getTesticlesDescription(T, E, P, E_is_dominant) {
@@ -129,22 +137,26 @@ export function getTesticlesDescription(T, E, P, E_is_dominant) {
         (C.GENITAL_PROGRESS_ACCELERATOR_BASE + P / C.GENITAL_PROGRESS_ACCELERATOR_SCALE);
     testicleShrinkageFactor = Math.max(0, testicleShrinkageFactor);
     const testicleVolume = Math.max(C.GENITAL_TESTICLES_MIN_VOL_ML, C.GENITAL_TESTICLES_BASE_VOL_ML - testicleShrinkageFactor).toFixed(1);
-    const testicleTexture = (E_is_dominant && E > C.GENITAL_TESTICLES_E_THRESHOLD_SOFT_TEXTURE && P > C.GENITAL_TESTICLES_P_THRESHOLD_SOFT_TEXTURE) ? 'мягкие, уменьшившиеся' : 'упругие';
-    let testiclesDescText = `🥚 Яички: объём ~${testicleVolume} мл, ${testicleTexture}. `;
+    
+    const textureKey = (E_is_dominant && E > C.GENITAL_TESTICLES_E_THRESHOLD_SOFT_TEXTURE && P > C.GENITAL_TESTICLES_P_THRESHOLD_SOFT_TEXTURE) ? 'soft' : 'firm';
+    const testicleTexture = t(`descriptions.testicles_desc.texture_${textureKey}`);
+    
+    let atrophyDesc = "";
     if (E_is_dominant && E > C.GENITAL_TESTICLES_E_THRESHOLD_ATROPHY && P > C.GENITAL_TESTICLES_P_THRESHOLD_ATROPHY && parseFloat(testicleVolume) < C.GENITAL_TESTICLES_ATROPHY_VOL_ML) {
-        testiclesDescText += "Почти атрофировались.";
+        atrophyDesc = t('descriptions.testicles_desc.atrophied');
     }
-    return testiclesDescText;
+    
+    return t('descriptions.testicles', { volume: testicleVolume, texture: testicleTexture, desc: atrophyDesc });
 }
 
 export function getFeelingDescription(E, P, E_is_dominant, hormonalBalanceFactor) {
-    let feelingDesc = "✨ Ощущения: ";
-    if (P > C.FEELING_P_THRESHOLD_PERFECT_SISSY && E_is_dominant && E > C.FEELING_E_THRESHOLD_PERFECT_SISSY) feelingDesc += "Воплощение женственности. Гармония.";
-    else if (P > C.FEELING_P_THRESHOLD_REAL_SISSY && E_is_dominant) feelingDesc += "Чувствуешь себя настоящей сисси. Уверенность растет.";
-    else if (P > C.FEELING_P_THRESHOLD_TRANSFORMATION_FULL_SWING && (E_is_dominant || hormonalBalanceFactor > C.FEELING_HORMONAL_BALANCE_THRESHOLD_TRANSFORMATION_FULL_SWING)) feelingDesc += "Трансформация идет полным ходом! Прилив сисси-энергии.";
-    else if (P > C.FEELING_P_THRESHOLD_FIRST_WHISPERS) feelingDesc += "Первые шепоты изменений. Тело меняется, это волнует.";
-    else feelingDesc += "Самое начало пути. Ветерок перемен едва коснулся.";
-    return feelingDesc;
+    let feelingKey = 'beginning';
+    if (P > C.FEELING_P_THRESHOLD_PERFECT_SISSY && E_is_dominant && E > C.FEELING_E_THRESHOLD_PERFECT_SISSY) feelingKey = 'harmony';
+    else if (P > C.FEELING_P_THRESHOLD_REAL_SISSY && E_is_dominant) feelingKey = 'sissy';
+    else if (P > C.FEELING_P_THRESHOLD_TRANSFORMATION_FULL_SWING && (E_is_dominant || hormonalBalanceFactor > C.FEELING_HORMONAL_BALANCE_THRESHOLD_TRANSFORMATION_FULL_SWING)) feelingKey = 'full_swing';
+    else if (P > C.FEELING_P_THRESHOLD_FIRST_WHISPERS) feelingKey = 'whispers';
+    
+    return t('descriptions.feeling', { desc: t(`descriptions.feeling_desc.${feelingKey}`) });
 }
 
 export function getCurrentOutfitDescription() {
@@ -152,38 +164,38 @@ export function getCurrentOutfitDescription() {
     const descriptions = [];
 
     if (currentOutfit[CLOTHING_SLOTS.FULL_BODY]) {
-        descriptions.push(`ты полностью одета в: ${CLOTHING_ITEMS[currentOutfit[CLOTHING_SLOTS.FULL_BODY]].name.toLowerCase()}`);
+        const itemName = CLOTHING_ITEMS[currentOutfit[CLOTHING_SLOTS.FULL_BODY]].name.toLowerCase();
+        descriptions.push(t('descriptions.outfit_desc.full_body', { item: itemName }));
     } else {
         const top = currentOutfit[CLOTHING_SLOTS.TOP] ? CLOTHING_ITEMS[currentOutfit[CLOTHING_SLOTS.TOP]].name.toLowerCase() : null;
         const bottom = currentOutfit[CLOTHING_SLOTS.BOTTOM] ? CLOTHING_ITEMS[currentOutfit[CLOTHING_SLOTS.BOTTOM]].name.toLowerCase() : null;
-        if (top && bottom) descriptions.push(`на тебе надета ${top} и ${bottom}`);
-        else if (top) descriptions.push(`на тебе надета ${top}`);
-        else if (bottom) descriptions.push(`на тебе надета ${bottom}`);
+        if (top && bottom) descriptions.push(t('descriptions.outfit_desc.top_bottom', { top, bottom }));
+        else if (top) descriptions.push(t('descriptions.outfit_desc.top_only', { top }));
+        else if (bottom) descriptions.push(t('descriptions.outfit_desc.bottom_only', { bottom }));
     }
 
     const underwearTop = currentOutfit[CLOTHING_SLOTS.UNDERWEAR_TOP] ? CLOTHING_ITEMS[currentOutfit[CLOTHING_SLOTS.UNDERWEAR_TOP]].name.toLowerCase() : null;
     const underwearBottom = currentOutfit[CLOTHING_SLOTS.UNDERWEAR_BOTTOM] ? CLOTHING_ITEMS[currentOutfit[CLOTHING_SLOTS.UNDERWEAR_BOTTOM]].name.toLowerCase() : null;
-    let underwearDesc = "";
-    if (underwearTop && underwearBottom) underwearDesc = `${underwearTop} и ${underwearBottom}`;
-    else if (underwearTop) underwearDesc = underwearTop;
-    else if (underwearBottom) underwearDesc = underwearBottom;
 
-    if (underwearDesc) {
-        const connector = descriptions.length > 0 ? ", а под одеждой" : "Под одеждой";
-        descriptions.push(`${connector} у тебя ${underwearDesc}`);
+    if (underwearTop && underwearBottom) {
+        const prefix = t(descriptions.length > 0 ? 'descriptions.outfit_desc.underwear_prefix_and' : 'descriptions.outfit_desc.underwear_prefix_alone');
+        descriptions.push(t('descriptions.outfit_desc.underwear_full', { prefix, top: underwearTop, bottom: underwearBottom }));
+    } else if (underwearTop || underwearBottom) {
+        const prefix = t(descriptions.length > 0 ? 'descriptions.outfit_desc.underwear_prefix_and' : 'descriptions.outfit_desc.underwear_prefix_alone');
+        descriptions.push(t('descriptions.outfit_desc.underwear_single', { prefix, item: underwearTop || underwearBottom }));
     }
-
+    
     if (currentOutfit[CLOTHING_SLOTS.SHOES]) {
         const shoes = CLOTHING_ITEMS[currentOutfit[CLOTHING_SLOTS.SHOES]].name.toLowerCase();
-        const connector = descriptions.length > 0 ? ", на ногах -" : "На ногах -";
-        descriptions.push(`${connector} ${shoes}`);
+        const prefix = t(descriptions.length > 0 ? 'descriptions.outfit_desc.shoes_prefix_and' : 'descriptions.outfit_desc.shoes_prefix_alone');
+        descriptions.push(t('descriptions.outfit_desc.shoes', { prefix, item: shoes }));
     }
-
+    
     if (descriptions.length === 0) {
-        return "👕 Наряд: Ты сейчас ни во что не одета.";
+        return t('descriptions.outfit', { desc: t('descriptions.outfit_desc.naked') });
     }
 
     let finalDescription = descriptions.join(' ').trim();
     finalDescription = finalDescription.charAt(0).toUpperCase() + finalDescription.slice(1) + '.';
-    return `👕 Наряд: ${finalDescription}`;
+    return t('descriptions.outfit', { desc: finalDescription });
 }

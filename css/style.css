@@ -589,6 +589,45 @@ body {
   margin: 30px 0; /* Увеличим вертикальные отступы */
 }
 
+/* Стили для событий */
+.event-display {
+  background-color: #333335;
+  border: 1px solid #4f4f52;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.event-dialogue {
+  margin-bottom: 20px;
+  color: #e0e0e0;
+  line-height: 1.6;
+  font-style: italic;
+}
+
+.event-dialogue p {
+  margin: 0 0 10px 0;
+}
+
+.event-dialogue strong {
+  font-weight: bold;
+  font-style: normal;
+}
+
+.speaker-stepmom {
+  color: #fca3ff; /* Розовый для Анжелы */
+}
+
+.speaker-player {
+  color: #a1e3ff; /* Голубой для игрока */
+}
+
+.event-choices .choice-button {
+  background-color: #5a5a5e;
+}
+.event-choices .choice-button:hover {
+  background-color: #6a6a6e;
+}
+
 /* Стили для основной кнопки начала */
 #beginJourneyButton {
   display: block;

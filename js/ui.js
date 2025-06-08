@@ -10,13 +10,12 @@ import {
     getPenisDescription, getTesticlesDescription, getFeelingDescription,
     getCurrentOutfitDescription
 } from './descriptions.js';
+import { t } from './i18n.js'; // <-- ИМПОРТ
 
 // --- Кэши и константы для UI ---
-
 let fullBodyDescriptionForModalStore = "";
 const choiceButtonCache = {};
 
-// Используем Map для быстрой и чистой привязки типа лога к CSS-классу
 const LOG_CLASS_MAP = new Map([
     ['default', 'log-default'],
     ['money-gain', 'log-money-gain'],
@@ -28,7 +27,6 @@ const LOG_CLASS_MAP = new Map([
     ['stepmom-dialogue', 'log-stepmom-dialogue'],
 ]);
 
-// Используем объект для иконок действий, чтобы убрать switch из renderChoices
 const ACTION_ICON_MAP = {
     'work': '💼 ',
     't_blocker': '💊 ',
@@ -39,9 +37,7 @@ const ACTION_ICON_MAP = {
     'save_game': '💾 ',
     'load_game': '📂 ',
     'reset_game': '🔄 '
-    // 'read_book' имеет динамическую иконку, оставим ее в логике
 };
-
 
 // --- Функции Логирования ---
 
@@ -60,7 +56,6 @@ export function log(msg, type = 'default') {
 }
 
 export function renderLog() {
-    // Используем DocumentFragment для оптимизации DOM-операций
     const fragment = document.createDocumentFragment();
     const ul = document.createElement('ul');
     ul.style.listStyleType = 'none';
@@ -68,19 +63,18 @@ export function renderLog() {
     ul.style.margin = '0';
 
     if (state.logMessages.length === 0) {
-        el.actionLogOutput.textContent = "Журнал пуст.";
+        el.actionLogOutput.textContent = t('ui.log_cleared');
         el.actionLogOutput.className = 'log-default';
         return;
     }
 
     state.logMessages.forEach((entry, index) => {
         const li = document.createElement('li');
-        li.textContent = `День ${entry.timestamp}: ${entry.text}`;
-        // Безопасное получение класса из Map
+        li.textContent = t('ui.log_entry', { day: entry.timestamp, text: entry.text });
         li.className = `log-entry ${LOG_CLASS_MAP.get(entry.type) || LOG_CLASS_MAP.get('default')}`;
         
         if (index === 0) {
-            li.classList.add('log-updated'); // Для анимации
+            li.classList.add('log-updated');
         }
         ul.appendChild(li);
     });
@@ -89,63 +83,49 @@ export function renderLog() {
     el.actionLogOutput.innerHTML = '';
     el.actionLogOutput.appendChild(fragment);
 
-    // Обновляем класс контейнера для подсветки последнего сообщения
     const latestEntry = state.logMessages[0];
     if (latestEntry) {
         el.actionLogOutput.className = `log-container ${LOG_CLASS_MAP.get(latestEntry.type) || LOG_CLASS_MAP.get('default')}`;
     }
 }
 
-
 // --- Функции Обновления UI ---
 
 export function updateTabsVisibility() {
-    if (!Array.isArray(el.tabs)) {
-        console.error('el.tabs is not an array');
-        return;
-    }
+    if (!Array.isArray(el.tabs)) return;
 
-    let tabSwitched = false;
-    const isHormoneTabVisible = state.hormonesUnlocked;
+    // НОВОЕ УСЛОВИЕ
+    const isHormoneTabVisible = state.plotFlags.hormone_therapy_unlocked;
 
-    // Скрываем/показываем вкладку гормонов
     const hormoneTab = el.tabs.find(btn => btn.dataset.tab === 'hormone');
     if (hormoneTab) {
         hormoneTab.style.display = isHormoneTabVisible ? '' : 'none';
     }
 
-    // Если текущая вкладка стала невидимой, переключаемся на дефолтную
     if (!isHormoneTabVisible && state.tab === 'hormone') {
         state.tab = 'income';
-        tabSwitched = true;
+        renderCurrentTabContent(); // Принудительно перерисовываем, т.к. вкладка сменилась
     }
 
-    // Обновляем классы для всех вкладок
     el.tabs.forEach(btn => {
         btn.classList.toggle('selected', btn.dataset.tab === state.tab);
     });
-    
-    // Если вкладка была переключена программно, нужно перерисовать контент
-    if (tabSwitched) {
-        renderCurrentTabContent();
-    }
 }
 
 export function updateProgressDisplay() {
-    const isUnlocked = state.hormonesUnlocked;
-    el.progressTitle.textContent = isUnlocked ? "Прогресс" : "Открытия";
-    el.progressIcon.textContent = isUnlocked ? "📈" : "💡";
+    // УПРОЩЕННАЯ ЛОГИКА
+    el.progressTitle.textContent = t('ui.progress');
+    el.progressIcon.textContent = "📈";
     
-    const currentValue = isUnlocked ? state.progress : state.discoveryPoints;
-    const maxValue = isUnlocked ? C.MAX_PROGRESS : C.MAX_DISCOVERY_POINTS;
-    const unit = isUnlocked ? '%' : '';
+    const currentValue = state.progress;
+    const maxValue = C.MAX_PROGRESS;
+    const unit = '%';
 
     el.prog.textContent = `${currentValue}${unit} / ${maxValue}${unit}`;
     el.pbar.style.width = `${(currentValue / maxValue) * 100}%`;
 }
 
-
-// Конфигурация для Data-Driven подхода
+// Конфигурация для Data-Driven подхода (остается без изменений)
 const bodyPartDescriptors = [
     { key: 'voice',           func: getVoiceDescription,         args: (T, E, P) => [T, E, P] },
     { key: 'skin',            func: getSkinDescription,          args: (T, E, P, E_dom, T_dom) => [T, E, P, E_dom, T_dom] },
@@ -167,23 +147,23 @@ function trackAndLogChange(paramKey, currentValue, changeTexts) {
             changeTexts.push(`${parameterTitle}: ${formattedChangeDesc}`);
         }
     }
-    state.previousBodyParams[paramKey] = currentValue; // Обновляем предыдущее значение
+    state.previousBodyParams[paramKey] = currentValue;
     return currentValue;
 }
 
 export function updateBody() {
-    // Начало до разблокировки гормонов
+    // В будущем эта логика будет сильно изменена или удалена,
+    // но пока оставляем для обратной совместимости
     if (!state.hormonesUnlocked) {
+        // Мы будем удалять 'discoveryPoints', поэтому этот блок станет не нужен
         const preUnlockLines = [
-            "Ты продолжаешь исследовать себя и окружающий мир. Какие-то смутные желания и мысли иногда посещают тебя, но пока неясно, к чему они ведут.",
-            `Твои текущие ощущения: ${state.discoveryPoints > 15 ? "Любопытство растет, ты находишь все больше интересной информации." : "Обычный день, обычные мысли."}`,
-            `Очки открытий: ${state.discoveryPoints}/${C.DISCOVERY_POINTS_TO_UNLOCK_HORMONES}`
+            "Ты живешь в доме мачехи. Каждый день приносит что-то новое, и ты чувствуешь, что ее внимание к тебе усиливается...",
+            `Влияние мачехи: ${state.stepMotherInfluence}`
         ];
         el.bodyDesc.textContent = fullBodyDescriptionForModalStore = preUnlockLines.join('\n\n');
         return;
     }
 
-    // Рассчитываем общие параметры один раз
     const T = state.emaT, E = state.emaE, P = state.progress;
     const T_is_dominant = T > E + 10;
     const E_is_dominant = E > T + 5;
@@ -191,7 +171,6 @@ export function updateBody() {
     
     state.recentBodyChanges = [];
     
-    // Data-driven генерация описаний
     const allBodyLines = bodyPartDescriptors.map(descriptor => {
         const args = descriptor.args(T, E, P, E_is_dominant, T_is_dominant);
         const currentValue = descriptor.func(...args);
@@ -202,12 +181,11 @@ export function updateBody() {
     allBodyLines.push(feelingDesc);
     allBodyLines.push(getCurrentOutfitDescription());
 
-    // Сохраняем полное описание для модального окна
     fullBodyDescriptionForModalStore = allBodyLines.join('\n\n');
 
-    // Формируем краткое описание для основного экрана
     const summaryLines = [feelingDesc, getCurrentOutfitDescription()];
     if (state.recentBodyChanges.length > 0) {
+        // TODO: Перевести строки на ключи локализации
         summaryLines.push("\n❗ Ключевые изменения за последний день:");
         const maxChangesToShowInSummary = 3;
         state.recentBodyChanges.slice(0, maxChangesToShowInSummary).forEach(change => {
@@ -220,7 +198,6 @@ export function updateBody() {
         summaryLines.push("\nЗаметных физических изменений за последний день не произошло.");
     }
     
-    // Рендерим краткое описание и кнопку
     el.bodyDesc.innerHTML = '';
     const summaryFragment = document.createDocumentFragment();
     summaryLines.forEach(line => {
@@ -235,7 +212,7 @@ export function updateBody() {
     let modalButton = document.createElement('button');
     modalButton.id = 'open-body-details-button';
     modalButton.className = 'choice-button';
-    modalButton.textContent = '🔍 Подробный осмотр тела';
+    modalButton.textContent = t('ui.body_details_button');
     modalButton.style.marginTop = '15px';
     modalButton.onclick = openBodyDetailsModal;
     summaryFragment.appendChild(modalButton);
@@ -243,10 +220,20 @@ export function updateBody() {
     el.bodyDesc.appendChild(summaryFragment);
 }
 
-
 // --- Рендеринг вкладок (Выбор действий и Гардероб) ---
 
 function renderCurrentTabContent() {
+    if (state.gameState !== 'normal') {
+        // Если идет событие, НЕ ТРОГАЕМ контейнер el.choices.
+        // Он сейчас контролируется функцией renderEvent.
+        // Просто выходим из функции.
+        return;
+    }
+
+    // Если же игра в нормальном состоянии, то всё работает как раньше.
+    // Сначала очищаем, потом рисуем нужные кнопки.
+    el.choices.innerHTML = ''; 
+
     if (state.tab === 'wardrobe') {
         renderWardrobeUI();
     } else {
@@ -258,17 +245,13 @@ export function renderWardrobeUI() {
     const fragment = document.createDocumentFragment();
 
     const equippedSection = createWardrobeSection('Сейчас надето:', state.currentOutfit, 'unequip');
-    
     const currentlyWornItemIds = Object.values(state.currentOutfit).filter(id => id !== null);
-    
     const availableItems = state.ownedClothes.filter(itemId => !currentlyWornItemIds.includes(itemId));
     
     const availableItemsBySlot = {};
     availableItems.forEach(itemId => {
         const item = CLOTHING_ITEMS[itemId];
-        if (!availableItemsBySlot[item.slot]) {
-            availableItemsBySlot[item.slot] = [];
-        }
+        if (!availableItemsBySlot[item.slot]) availableItemsBySlot[item.slot] = [];
         availableItemsBySlot[item.slot].push(itemId);
     });
 
@@ -284,7 +267,7 @@ function createWardrobeSection(title, items, actionType) {
     const section = document.createElement('div');
     section.className = 'wardrobe-section';
     const h3 = document.createElement('h3');
-    h3.textContent = title;
+    h3.textContent = title; // TODO: Перевести в локаль
     section.appendChild(h3);
 
     let hasItems = false;
@@ -301,16 +284,16 @@ function createWardrobeSection(title, items, actionType) {
 
             const itemNameSpan = document.createElement('span');
             const slotKeyName = Object.keys(CLOTHING_SLOTS).find(key => CLOTHING_SLOTS[key] === item.slot);
-            itemNameSpan.textContent = `${item.name} (слот: ${slotKeyName})`;
+            itemNameSpan.textContent = `${item.name} (слот: ${slotKeyName})`; // TODO: Перевести
             itemDiv.appendChild(itemNameSpan);
 
             const button = document.createElement('button');
             button.className = 'choice-button wardrobe-button';
             if (actionType === 'equip') {
-                button.textContent = 'Надеть';
+                button.textContent = 'Надеть'; // TODO: Перевести
                 button.onclick = () => equipItem(itemId);
             } else {
-                button.textContent = 'Снять';
+                button.textContent = 'Снять'; // TODO: Перевести
                 button.onclick = () => unequipItem(item.slot);
             }
             itemDiv.appendChild(button);
@@ -320,6 +303,7 @@ function createWardrobeSection(title, items, actionType) {
 
     if (!hasItems) {
         const p = document.createElement('p');
+        // TODO: Перевести
         p.textContent = actionType === 'equip' ? 'В шкафу пусто или вся одежда уже надета.' : 'Ничего не надето.';
         section.appendChild(p);
     }
@@ -328,7 +312,7 @@ function createWardrobeSection(title, items, actionType) {
 
 export function renderChoices() {
     const fragment = document.createDocumentFragment();
-    const actionsToDisplay = actions.filter(action => 
+    const actionsToDisplay = actions.filter(action =>
         action.tab === state.tab &&
         !(action.tab === 'hormone' && !state.hormonesUnlocked)
     );
@@ -341,34 +325,52 @@ export function renderChoices() {
             choiceButtonCache[action.id] = { buttonElement };
         }
 
-        let baseText = typeof action.text === 'function' ? action.text() : action.text;
+        // --- ВОТ ГЛАВНОЕ ИЗМЕНЕНИЕ ---
+
+        // 1. Получаем иконку
         let icon = ACTION_ICON_MAP[action.id] || '';
+        // Особый случай для книги
         if (action.id === 'read_book') {
             icon = state.hormonesUnlocked ? '📖 ' : '📚 ';
         }
 
-        let currentText = icon + baseText;
+        // 2. Получаем базовый текст по ключу
+        const key = typeof action.textKey === 'function' ? action.textKey() : action.textKey;
+        // Параметры для замены в строке
+        const replacements = {
+            duration: C.T_BLOCKER_DURATION_DAYS,
+            effect: C.T_PILL_EFFECT,
+            e_effect: C.E_PILL_EFFECT_E,
+            t_reduction: C.E_PILL_EFFECT_T_REDUCTION
+        };
+        let baseText = t(key, replacements);
+        
+        let fullButtonText = `${icon}${baseText}`;
         let isDisabled = (action.condition && !action.condition());
 
+        // 3. Добавляем информацию о стоимости или доходе
         if (action.cost > 0) {
-            currentText += ` (–${action.cost}${C.CURRENCY_SYMBOL})`;
+            fullButtonText += ` (–${action.cost}${C.CURRENCY_SYMBOL})`;
             if (state.money < action.cost) {
                 isDisabled = true;
-                currentText += ` (Нужно: ${action.cost}${C.CURRENCY_SYMBOL})`;
+                // TODO: Перевести в локаль
+                fullButtonText += ` (Нужно: ${action.cost}${C.CURRENCY_SYMBOL})`;
             }
         } else if (action.id === 'work') {
-            currentText += ` (+${C.WORK_INCOME}${C.CURRENCY_SYMBOL})`;
-        }
-        
-        if (action.id === 't_blocker' && isDisabled) {
-             currentText = `${icon}Блокатор Т активен (${state.t_blocker_active_days} дн.)`;
+            fullButtonText += ` (+${C.WORK_INCOME}${C.CURRENCY_SYMBOL})`;
         }
 
-        buttonElement.textContent = currentText;
+        // 4. Особый случай для активного блокатора
+        if (action.id === 't_blocker' && state.t_blocker_active_days > 0) {
+             fullButtonText = `${icon}${t('actions.t_blocker.active', { days: state.t_blocker_active_days })}`;
+             isDisabled = true;
+        }
+
+        buttonElement.textContent = fullButtonText;
         buttonElement.disabled = isDisabled;
         fragment.appendChild(buttonElement);
     });
-    
+
     el.choices.innerHTML = '';
     el.choices.appendChild(fragment);
 }
@@ -402,4 +404,68 @@ export function closeBodyDetailsModal() {
     if (el.modalOverlay) {
         el.modalOverlay.classList.remove('active');
     }
+}
+
+// --- НОВЫЙ РАЗДЕЛ: ДВИЖОК СОБЫТИЙ ---
+
+/**
+ * Отображает текущую сцену события, блокируя основной интерфейс.
+ * @param {object} eventData - Полный объект события из gameEvents.
+ * @param {string} [sceneId='intro'] - ID сцены для отображения.
+ */
+export function renderEvent(eventData, sceneId = 'intro') {
+    const scene = eventData.scenes.find(s => s.id === sceneId);
+    if (!scene) {
+        console.error(`Сцена с ID ${sceneId} не найдена в событии ${eventData.id}`);
+        endEvent();
+        return;
+    }
+
+    const choicesContainer = el.choices;
+    // Вот здесь очистка, чтобы сцены не накладывались друг на друга.
+    choicesContainer.innerHTML = ''; 
+
+    const eventWrapper = document.createElement('div');
+    eventWrapper.className = 'event-display';
+
+    // Рендерим диалог
+    const dialogueDiv = document.createElement('div');
+    dialogueDiv.className = 'event-dialogue';
+    scene.dialogue.forEach(line => {
+        const p = document.createElement('p');
+        const speakerName = (line.speaker === 'stepmom') ? C.STEPMOM_NAME : state.playerName;
+        const text = t(line.text_key, { playerName: state.playerName });
+        p.innerHTML = `<strong class="speaker-${line.speaker}">${speakerName}:</strong> <em>"${text}"</em>`;
+        dialogueDiv.appendChild(p);
+    });
+    eventWrapper.appendChild(dialogueDiv);
+
+    const choicesDiv = document.createElement('div');
+    choicesDiv.className = 'event-choices';
+    scene.choices.forEach(choice => {
+        const button = document.createElement('button');
+        button.className = 'choice-button event-choice';
+        button.textContent = t(choice.text_key);
+        button.onclick = () => {
+            const result = choice.action(state);
+            if (result.endEvent) {
+                endEvent();
+            } else if (result.nextSceneId) {
+                renderEvent(eventData, result.nextSceneId);
+            }
+        };
+        choicesDiv.appendChild(button);
+    });
+    eventWrapper.appendChild(choicesDiv);
+    
+    choicesContainer.appendChild(eventWrapper);
+}
+
+/**
+ * Завершает текущее событие и возвращает игру в нормальное состояние.
+ */
+function endEvent() {
+    state.gameState = 'normal';
+    console.log("Событие завершено.");
+    updateStats(); // Полностью перерисовываем интерфейс в нормальное состояние
 }

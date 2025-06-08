@@ -1,25 +1,49 @@
 import { state } from './state.js';
 import * as C from './config.js';
-import { log, updateTabsVisibility, updateProgressDisplay, updateStats } from './ui.js';
+import { log, updateStats } from './ui.js';
+import { gameEvents } from './gameData/events.js';
+import { renderEvent } from './ui.js';
 
-export function checkHormoneUnlock() {
-    if (!state.hormonesUnlocked && state.discoveryPoints >= C.DISCOVERY_POINTS_TO_UNLOCK_HORMONES) {
-        state.hormonesUnlocked = true;
-        log("✨ Внезапное озарение! Ты нашла информацию о гормональной терапии и пути к женственности. Кажется, это то, что ты искала... Вкладка 'Гормоны' теперь доступна!", 'important');
-        updateTabsVisibility();
-        updateProgressDisplay();
-        return true;
+function checkAndTriggerEvents() {
+    if (state.gameState !== 'normal') return;
+
+    const availableEvents = gameEvents.filter(event => {
+        // Проверяем, что событие одноразовое и еще не было завершено
+        if (event.oneTime && state.completedTasks.includes(event.id)) {
+            return false;
+        }
+        // Проверяем триггер
+        return event.trigger(state);
+    });
+
+    if (availableEvents.length > 0) {
+        const eventToRun = availableEvents[0];
+        state.gameState = 'event'; // Блокируем игру
+        state.completedTasks.push(eventToRun.id); // Сразу отмечаем как выполненное, чтобы не запускалось повторно
+        console.log("Запуск события:", eventToRun.id);
+        renderEvent(eventToRun); // Передаем управление в UI
     }
-    return false;
 }
 
 export function nextDay() {
     state.day++;
 
+    // Сначала обрабатываем логику событий нового дня
+    checkAndTriggerEvents();
+    if (state.gameState !== 'normal') {
+        // Если событие началось, оно может прервать обычный ход дня.
+        // Дальнейшая логика (изменение гормонов и т.д.) может быть поставлена на паузу
+        // или обработана внутри самого события. Пока просто выходим.
+        updateStats(); // Обновляем UI, чтобы показать, что день сменился.
+        return;
+    }
+
+    // Обычная логика дня (если не было событий)
     if (state.t_blocker_active_days > 0) {
         state.t_blocker_active_days--;
         if (state.t_blocker_active_days === 0) {
             state.natural_t_multiplier = 1.0;
+            // TODO: Перевести в локаль
             log("Действие блокатора тестостерона закончилось.", "hormone-change");
         }
     }

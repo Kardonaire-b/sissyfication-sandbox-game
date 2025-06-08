@@ -6,6 +6,7 @@ import { nextDay } from './gameLogic.js';
 import { log, updateStats, updateTabsVisibility, updateProgressDisplay, renderChoices, renderWardrobeUI, renderLog, openBodyDetailsModal, closeBodyDetailsModal } from './ui.js';
 import { saveGame, loadGame } from './saveLoad.js';
 import * as C from './config.js';
+import { t } from './i18n.js';
 
 function proceedToGame() {
     state.playerName = el.playerNameInput.value.trim() || state.playerName;
@@ -133,9 +134,52 @@ function initializeGame() {
     updateStats();
 }
 
+function applyLocale() {
+    // Экран вступления
+    document.querySelector('.intro-content h1').textContent = t('intro.title');
+    const introParagraphs = document.querySelectorAll('.intro-content p');
+    introParagraphs[0].textContent = t('intro.p1');
+    introParagraphs[1].childNodes[0].textContent = t('intro.p2_dialogue');
+    introParagraphs[1].childNodes[1].textContent = t('intro.p2');
+    introParagraphs[1].childNodes[2].textContent = t('intro.p2_dialogue2');
+    introParagraphs[2].textContent = t('intro.section_name');
+    document.querySelector('label[for="playerNameInput"]').textContent = t('intro.label_player_name');
+    el.playerNameInput.placeholder = t('intro.placeholder_player_name');
+    document.querySelector('label[for="playerSurnameInput"]').textContent = t('intro.label_player_surname');
+    el.playerSurnameInput.placeholder = t('intro.placeholder_player_surname');
+    introParagraphs[3].textContent = t('intro.section_body');
+    document.querySelector('label[for="bodyTypeSelect"]').textContent = t('intro.label_body_type');
+    const bodyTypeOptions = el.bodyTypeSelect.options;
+    bodyTypeOptions[0].textContent = t('intro.body_type_average');
+    bodyTypeOptions[1].textContent = t('intro.body_type_slim');
+    bodyTypeOptions[2].textContent = t('intro.body_type_athletic');
+    el.beginJourneyButton.textContent = t('intro.begin_button');
+
+    // Основной интерфейс
+    el.tabs.find(b => b.dataset.tab === 'income').textContent = t('ui.income');
+    el.tabs.find(b => b.dataset.tab === 'hormone').textContent = t('ui.hormones');
+    el.tabs.find(b => b.dataset.tab === 'other').textContent = t('ui.other');
+    el.tabs.find(b => b.dataset.tab === 'wardrobe').textContent = t('ui.wardrobe');
+
+    document.querySelector('.stat:nth-child(1) .stat-title').innerHTML = `<span class="icon">🗓️</span>${t('ui.day')}`;
+    document.querySelector('.stat:nth-child(2) .stat-title').innerHTML = `<span class="icon">💰</span>${t('ui.money')}`;
+    document.querySelector('.stat:nth-child(3) .stat-title').innerHTML = `<span class="icon">♂️</span>${t('ui.testosterone')}`;
+    document.querySelector('.stat:nth-child(4) .stat-title').innerHTML = `<span class="icon">♀️</span>${t('ui.estrogen')}`;
+
+    document.getElementById('modal-body-details').querySelector('h2').textContent = t('ui.body_details_title');
+}
+
 
 // --- Логика запуска игры ---
 document.addEventListener('DOMContentLoaded', () => {
+    // СНАЧАЛА применяем локаль, чтобы весь текст был на месте
+    try {
+        applyLocale();
+    } catch(e) {
+        console.error("Ошибка применения локализации:", e);
+    }
+    
+    // Затем выполняем остальную логику загрузки
     let loadedSuccessfully = false;
     try {
         loadedSuccessfully = loadGame();

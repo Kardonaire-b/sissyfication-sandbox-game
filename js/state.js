@@ -16,13 +16,10 @@ function getInitialOutfit() {
     for (const slotKey in CLOTHING_SLOTS) {
         outfit[CLOTHING_SLOTS[slotKey]] = null;
     }
-
     getInitialOwnedClothes().forEach(itemId => {
         const item = CLOTHING_ITEMS[itemId];
-        if (item.ownedByDefault) {
-            if (outfit[item.slot] === null) {
-                 outfit[item.slot] = item.id;
-            }
+        if (item.ownedByDefault && outfit[item.slot] === null) {
+            outfit[item.slot] = item.id;
             if (item.slot === CLOTHING_SLOTS.FULL_BODY) {
                 outfit[CLOTHING_SLOTS.TOP] = null;
                 outfit[CLOTHING_SLOTS.BOTTOM] = null;
@@ -33,32 +30,54 @@ function getInitialOutfit() {
 }
 
 export const state = {
-  introCompleted: false,     // НОВЫЙ: Флаг завершения вступления
-  playerName: "Райан",       // НОВЫЙ: Имя игрока (дефолт)
-  playerSurname: "Коллстон",   // НОВЫЙ: Фамилия игрока (дефолт)
-  playerBodyType: "average",
+    // Основные игровые параметры
+    introCompleted: false,
+    playerName: "Райан",
+    playerSurname: "Коллстон",
+    playerBodyType: "average",
+    day: 0,
+    money: 50,
+    tab: 'income',
+    gameState: 'normal', // 'normal', 'event', 'dialogue'
 
-  day: 0,
-  money: 50,
-  testosterone: 50,          // Оставим пока без выбора для простоты первой итерации
-  estrogen: BASE_E,          // Оставим пока без выбора
-  emaT: 50,
-  emaE: BASE_E,
-  progress: 0,
-  discoveryPoints: 0,
-  hormonesUnlocked: false,
-  tab: 'income',
-  t_blocker_active_days: 0,
-  natural_t_multiplier: 1.0,
+    // Параметры тела
+    testosterone: 50,
+    estrogen: BASE_E,
+    emaT: 50,
+    emaE: BASE_E,
+    progress: 0, // Этот параметр остаётся как общая мера феминизации
+    t_blocker_active_days: 0,
+    natural_t_multiplier: 1.0,
 
-  ownedClothes: getInitialOwnedClothes(),
-  currentOutfit: getInitialOutfit(),
+    // Гардероб
+    ownedClothes: getInitialOwnedClothes(),
+    currentOutfit: getInitialOutfit(),
 
-  previousBodyParams: {},
-  recentBodyChanges: [],
+    // Вспомогательные данные для UI
+    previousBodyParams: {},
+    recentBodyChanges: [],
+    logMessages: [],
+    maxLogMessages: 10, // Увеличим немного для диалогов
 
-  logMessages: [],
-  maxLogMessages: 7, // Можно немного увеличить для сюжетных сообщений
-  
-  stepMotherInfluence: 0, // НОВЫЙ: Задел на будущее для влияния мачехи
+    // --- НОВЫЕ СТРУКТУРЫ ДЛЯ СЮЖЕТА И ПРОГРЕССИИ ---
+    
+    // Психологические параметры
+    obedience: 0,
+    rebellion: 0,
+    stepMotherInfluence: 0,
+
+    // Система Заданий
+    activeTaskId: null,
+    completedTasks: [],
+
+    // Система Навыков
+    skills: {},
+
+    // --- СЮЖЕТНЫЕ ФЛАГИ ---
+    // Эти флаги будут управлять доступностью контента, заменяя 'hormonesUnlocked'
+    plotFlags: {
+        // Пример:
+        // 'hormone_therapy_started': false,
+        // 'panty_gift_accepted': false,
+    }
 };

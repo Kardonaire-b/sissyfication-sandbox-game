@@ -2,94 +2,105 @@ import { state } from './state.js';
 import * as C from './config.js';
 import { saveGame, loadGame, SAVEGAME_KEY } from './saveLoad.js';
 import { log } from './ui.js';
-import { executeAction } from './actionExecutor.js'; // Наш новый исполнитель!
+import { executeAction } from './actionExecutor.js';
+import { t } from './i18n.js';
 
 export const actions = [
    {
         id: 'work',
-        text: `Работать`, cost: 0, tab: 'income',
+        // Теперь возвращаем просто ключ
+        textKey: 'actions.work.text',
+        cost: 0,
+        tab: 'income',
         handler: () => executeAction('work')
     },
     {
         id: 't_blocker',
-        text: `Блокатор Т (${C.T_BLOCKER_DURATION_DAYS} дн.)`, cost: C.T_BLOCKER_COST, tab: 'hormone',
-        condition: () => state.hormonesUnlocked && state.t_blocker_active_days === 0,
+        textKey: 'actions.t_blocker.text',
+        cost: C.T_BLOCKER_COST,
+        tab: 'hormone',
+        // НОВОЕ УСЛОВИЕ
+        condition: () => state.plotFlags.hormone_therapy_unlocked && state.t_blocker_active_days === 0,
         handler: () => executeAction('t_blocker')
     },
     {
         id: 't_pill',
-        text: `Таблетка T (+${C.T_PILL_EFFECT} T)`, cost: C.HORMONE_PILL_COST, tab: 'hormone',
+        textKey: 'actions.t_pill.text',
+        cost: C.HORMONE_PILL_COST,
+        tab: 'hormone',
         condition: () => state.hormonesUnlocked,
         handler: () => executeAction('t_pill')
     },
     {
         id: 'e_pill',
-        text: `Таблетка E (+${C.E_PILL_EFFECT_E} E, -${C.E_PILL_EFFECT_T_REDUCTION} T)`, cost: C.HORMONE_PILL_COST, tab: 'hormone',
+        textKey: 'actions.e_pill.text',
+        cost: C.HORMONE_PILL_COST,
+        tab: 'hormone',
         condition: () => state.hormonesUnlocked,
         handler: () => executeAction('e_pill')
     },
     {
         id: 'read_book',
-        text: () => state.hormonesUnlocked ? `Читать книгу (углубление)` : `Читать книгу (самопознание)`,
-        cost: 0, tab: 'other',
+        textKey: 'actions.read_book.progress', // Всегда один ключ
+        cost: 0,
+        tab: 'other',
         handler: () => executeAction('read_book')
     },
     {
         id: 'browse_internet',
-        text: () => state.hormonesUnlocked ? 'Искать информацию (углубление)' : 'Искать информацию в интернете',
-        cost: 0, tab: 'other',
+        textKey: 'actions.browse_internet.progress', // Всегда один ключ
+        cost: 0,
+        tab: 'other',
         handler: () => executeAction('browse_internet')
     },
     {
         id: 'rest',
-        text: 'Отдых', cost: 0, tab: 'other',
+        textKey: 'actions.rest.text',
+        cost: 0,
+        tab: 'other',
         handler: () => executeAction('rest')
     },
     {
         id: 'save_game',
-        text: 'Сохранить игру', cost: 0, tab: 'other',
+        textKey: 'actions.save_game.text',
+        cost: 0,
+        tab: 'other',
         handler: () => {
             saveGame();
         }
     },
     {
         id: 'load_game',
-        text: 'Загрузить игру', cost: 0, tab: 'other',
+        textKey: 'actions.load_game.text',
+        cost: 0,
+        tab: 'other',
         handler: () => {
-            // ИЗМЕНЕНИЕ: Улучшаем обработчик загрузки
-            if (localStorage.getItem(SAVEGAME_KEY)) { // Проверяем, есть ли сохранение
-                if (window.confirm("Загрузить сохраненную игру? Текущий несохраненный прогресс будет потерян.")) {
-                    if (loadGame()) { // loadGame из saveLoad.js возвращает true при успехе
-                        log('🔄 Загрузка сохраненной игры...', 'important');
-                        // Небольшая задержка, чтобы лог успел отобразиться перед перезагрузкой
-                        setTimeout(() => {
-                            window.location.reload();
-                        }, 700); 
+            if (localStorage.getItem(SAVEGAME_KEY)) {
+                if (window.confirm(t('actions.load_game.confirm'))) {
+                    if (loadGame()) {
+                        log(t('log.load_reload'), 'important');
+                        setTimeout(() => window.location.reload(), 700);
                     }
-                    // Сообщение об ошибке загрузки обрабатывается внутри loadGame
                 } else {
-                    log('Загрузка игры отменена.', 'default');
+                    log(t('actions.load_game.cancel'), 'default');
                 }
             } else {
-                log('❌ Нет сохраненной игры для загрузки.', 'money-loss');
+                log(t('actions.load_game.none'), 'money-loss');
             }
         }
     },
     {
         id: 'reset_game',
-        text: 'Начать игру заново (сброс)', // Более понятный текст
-        cost: 0, 
+        textKey: 'actions.reset_game.text',
+        cost: 0,
         tab: 'other',
         handler: () => {
-            if (window.confirm("Вы уверены, что хотите сбросить весь прогресс и начать игру заново? Это действие необратимо!")) {
-                log('🔄 Прогресс сброшен. Перезагрузка для начала новой игры...', 'important');
+            if (window.confirm(t('actions.reset_game.confirm'))) {
                 localStorage.removeItem(SAVEGAME_KEY);
-                // Небольшая задержка, чтобы лог успел отобразиться перед перезагрузкой
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1500); // 1.5 секунды
+                log(t('log.reset_reload'), 'important');
+                setTimeout(() => window.location.reload(), 1500);
             } else {
-                log('Сброс игры отменен.', 'default');
+                log(t('actions.reset_game.cancel'), 'default');
             }
         }
     }
