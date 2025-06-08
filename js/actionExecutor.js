@@ -80,7 +80,7 @@ export function executeAction(actionId) {
                 log(msg, 'discovery');
                 checkHormoneUnlock();
             } else {
-                const progressGain = C.BOOK_PROGRESS_GAIN;
+                const progressGain = C.INTERNET_PROGRESS_GAIN; 
                 state.progress = Math.min(C.MAX_PROGRESS, state.progress + progressGain);
                 log(`🌐 Поиск в интернете расширяет твое понимание трансформации. Прогресс +${progressGain}%.`, 'progress-change');
             }

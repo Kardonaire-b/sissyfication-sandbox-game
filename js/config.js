@@ -19,6 +19,7 @@ export const E_PILL_EFFECT_E = 3;
 export const E_PILL_EFFECT_T_REDUCTION = 1;
 export const WORK_INCOME = 20;
 export const BOOK_PROGRESS_GAIN = 2;
+export const INTERNET_PROGRESS_GAIN = 1;
 export const BOOK_DISCOVERY_GAIN = 3;
 export const INTERNET_DISCOVERY_GAIN = 5;
 export const REST_HORMONE_DECAY_MULTIPLIER = 0.98;

@@ -1,7 +1,7 @@
 // main.js
 import { state } from './state.js';
 import { el } from './domUtils.js';
-import { actions } from './actions.js'; 
+import { state as initialState } from './state.js';
 import { nextDay } from './gameLogic.js';
 import { log, updateStats, updateTabsVisibility, updateProgressDisplay, renderChoices, renderWardrobeUI, renderLog, openBodyDetailsModal, closeBodyDetailsModal } from './ui.js';
 import { saveGame, loadGame } from './saveLoad.js';
@@ -21,8 +21,8 @@ function proceedToGame() {
     // чтобы начальные значения T и E были скорректированы перед первым расчетом.
     
     // Сначала сбросим на дефолтные значения из state.js, если они вдруг были изменены ранее (маловероятно, но для чистоты)
-    let baseT = 50; // Исходное "среднее" значение T из state.js
-    let baseE = C.BASE_E; // Исходное "среднее" значение E из state.js
+    let baseT = initialState.testosterone; 
+    let baseE = initialState.estrogen;
 
     switch (state.playerBodyType) {
         case 'slim':
@@ -113,14 +113,14 @@ function initializeGame() {
         let stepmomComment = "";
         switch(state.playerBodyType) {
             case 'slim':
-                stepmomComment = ` "Ты такой(ая) худенький(ая), ${state.playerName}, надо бы тебя откормить немного! Но фигурка у тебя изящная, это хорошо."`;
+                stepmomComment = ` "Ты такой худенький, ${state.playerName}, надо бы тебя откормить немного! Но фигурка у тебя изящная, это хорошо."`;
                 break;
             case 'athletic':
                 stepmomComment = ` "Ого, ${state.playerName}, да ты в отличной форме! Мышцы так и играют. Но не переживай, мы найдем применение и такой энергии."`;
                 break;
             case 'average':
             default:
-                stepmomComment = ` "Ну что ж, ${state.playerName}, располагайся. Сложение у тебя обычное, есть над чем поработать, хе-хе."`;
+                stepmomComment = ` "Ну что ж, ${state.playerName}, сложение у тебя обычное, есть над чем поработать, хе-хе."`;
                 break;
         }
 
