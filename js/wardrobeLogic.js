@@ -1,6 +1,18 @@
 import { state } from './state.js';
 import { CLOTHING_ITEMS, CLOTHING_SLOTS } from './wardrobeConfig.js';
 import { updateStats } from './ui.js';
+import { eventBus } from './eventBus.js';
+
+/**
+ * Внутренняя функция для снятия предмета без вызова обновлений.
+ * @param {string} slotToUnequip - Слот для очистки.
+ */
+function unequipItemInternal(slotToUnequip) {
+    const itemToRemoveId = state.currentOutfit[slotToUnequip];
+    if (itemToRemoveId) {
+        state.currentOutfit[slotToUnequip] = null;
+    }
+}
 
 export function equipItem(itemId) {
     const itemToEquip = CLOTHING_ITEMS[itemId];
@@ -17,29 +29,29 @@ export function equipItem(itemId) {
     const currentOutfit = state.currentOutfit;
     const slotToOccupy = itemToEquip.slot;
 
+    // Логика конфликтов слотов
     if (slotToOccupy === CLOTHING_SLOTS.FULL_BODY) {
         if (currentOutfit[CLOTHING_SLOTS.TOP]) unequipItemInternal(CLOTHING_SLOTS.TOP);
         if (currentOutfit[CLOTHING_SLOTS.BOTTOM]) unequipItemInternal(CLOTHING_SLOTS.BOTTOM);
-    } else {
-        if (slotToOccupy === CLOTHING_SLOTS.TOP || slotToOccupy === CLOTHING_SLOTS.BOTTOM) {
-            if (currentOutfit[CLOTHING_SLOTS.FULL_BODY]) {
-                unequipItemInternal(CLOTHING_SLOTS.FULL_BODY);
-            }
-        }
-        if (currentOutfit[slotToOccupy] && currentOutfit[slotToOccupy] !== itemId) {
-             unequipItemInternal(slotToOccupy);
+    } else if (slotToOccupy === CLOTHING_SLOTS.TOP || slotToOccupy === CLOTHING_SLOTS.BOTTOM) {
+        if (currentOutfit[CLOTHING_SLOTS.FULL_BODY]) {
+            unequipItemInternal(CLOTHING_SLOTS.FULL_BODY);
         }
     }
+    
+    // Если в слоте уже что-то есть, снимаем это
+    if (currentOutfit[slotToOccupy]) {
+        unequipItemInternal(slotToOccupy);
+    }
+
+    // Надеваем новый предмет
     currentOutfit[slotToOccupy] = itemId;
     
+    // И только теперь, когда все изменения в state.currentOutfit завершены,
+    // вызываем обновление и проверку.
     updateStats();
-}
-
-function unequipItemInternal(slotToUnequip) {
-    const itemToRemoveId = state.currentOutfit[slotToUnequip];
-    if (itemToRemoveId) {
-        state.currentOutfit[slotToUnequip] = null;
-    }
+    // ИЗМЕНЕНИЕ: Отправляем событие вместо вызова функции
+    eventBus.dispatch('actionCompleted');
 }
 
 export function unequipItem(slotToUnequip) {
@@ -53,4 +65,6 @@ export function unequipItem(slotToUnequip) {
     unequipItemInternal(slotToUnequip);
 
     updateStats();
+    // ИЗМЕНЕНИЕ: Отправляем событие вместо вызова функции
+    eventBus.dispatch('actionCompleted');
 }

@@ -15,6 +15,9 @@ export const el = {
     bodyTypeSelect: $('bodyTypeSelect'),
     beginJourneyButton: $('beginJourneyButton'),
     gameContainer: $('game-container'), // Для скрытия/показа
+    taskContainer: $('task-container'),
+    taskTitle: $('task-title'),
+    taskDescription: $('task-description'),
 
     day: $('day'),
     money: $('money'),

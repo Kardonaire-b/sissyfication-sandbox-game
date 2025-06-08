@@ -1,40 +1,42 @@
 import { state } from './state.js';
 import * as C from './config.js';
-import { log, updateStats } from './ui.js';
+import { log, updateStats, renderEvent } from './ui.js'; // renderEvent добавлен
 import { gameEvents } from './gameData/events.js';
-import { renderEvent } from './ui.js';
+import { gameTasks } from './gameData/tasks.js'; // <-- ИМПОРТ ЗАДАНИЙ
+import { t } from './i18n.js'; // <-- ИМПОРТ ПЕРЕВОДЧИКА
+import { eventBus } from './eventBus.js';
 
 function checkAndTriggerEvents() {
     if (state.gameState !== 'normal') return;
 
     const availableEvents = gameEvents.filter(event => {
-        // Проверяем, что событие одноразовое и еще не было завершено
         if (event.oneTime && state.completedTasks.includes(event.id)) {
             return false;
         }
-        // Проверяем триггер
-        return event.trigger(state);
+        return event.trigger && event.trigger(state);
     });
 
     if (availableEvents.length > 0) {
-        const eventToRun = availableEvents[0];
-        state.gameState = 'event'; // Блокируем игру
-        state.completedTasks.push(eventToRun.id); // Сразу отмечаем как выполненное, чтобы не запускалось повторно
-        console.log("Запуск события:", eventToRun.id);
-        renderEvent(eventToRun); // Передаем управление в UI
+        startEventById(availableEvents[0].id);
     }
 }
 
 export function nextDay() {
     state.day++;
 
+    if (state.activeTaskId) {
+        const task = gameTasks[state.activeTaskId];
+        if (task && task.onFail && !task.isCompleted(state)) {
+            task.onFail(state);
+            state.activeTaskId = null;
+        }
+    }
+
     // Сначала обрабатываем логику событий нового дня
     checkAndTriggerEvents();
-    if (state.gameState !== 'normal') {
-        // Если событие началось, оно может прервать обычный ход дня.
-        // Дальнейшая логика (изменение гормонов и т.д.) может быть поставлена на паузу
-        // или обработана внутри самого события. Пока просто выходим.
-        updateStats(); // Обновляем UI, чтобы показать, что день сменился.
+
+   if (state.gameState !== 'normal') {
+        updateStats();
         return;
     }
 
@@ -62,4 +64,74 @@ export function nextDay() {
     state.emaE = C.EMA_ALPHA * state.estrogen + (1 - C.EMA_ALPHA) * state.emaE;
 
     updateStats();
+}
+
+// --- НОВЫЙ РАЗДЕЛ: УПРАВЛЕНИЕ ЗАДАНИЯМИ ---
+
+/**
+ * Назначает игроку новое активное задание.
+ * @param {string} taskId ID задания из gameTasks.
+ */
+// --- ИЗМЕНЕНИЕ: assignTask теперь внутренняя функция ---
+function assignTask(taskId) {
+    if (gameTasks[taskId]) {
+        state.activeTaskId = taskId;
+        console.log(`Назначено новое задание: ${taskId}`);
+    } else {
+        console.error(`Попытка назначить несуществующее задание: ${taskId}`);
+    }
+}
+eventBus.on('assignTask', taskId => assignTask(taskId));
+
+/**
+ * Проверяет, выполнено ли текущее активное задание.
+ * Если да, выполняет его onComplete и очищает activeTaskId.
+ */
+function checkActiveTaskCompletion() {
+    console.log(`[DEBUG] checkActiveTaskCompletion: Проверка... activeTaskId = ${state.activeTaskId}`);
+    if (!state.activeTaskId) return;
+
+    const task = gameTasks[state.activeTaskId];
+    if (task) {
+        console.log(`[DEBUG] checkActiveTaskCompletion: Задание найдено. Проверка условия isCompleted... Результат: ${task.isCompleted(state)}`);
+    }
+
+    if (task && task.isCompleted(state)) {
+        console.log(`Задание ${task.id} выполнено!`);
+        
+        const result = task.onComplete(state);
+        
+        state.completedTasks.push(state.activeTaskId);
+        state.activeTaskId = null;
+        
+        if (result && result.nextEventId) {
+            console.log(`[DEBUG] checkActiveTaskCompletion: Задание выполнено. Запускаем следующее событие: ${result.nextEventId}`);
+            setTimeout(() => startEventById(result.nextEventId), 100);
+        }
+    }
+}
+
+eventBus.on('actionCompleted', () => {
+    checkActiveTaskCompletion();
+});
+
+export function startEventById(eventId) {
+    console.log(`[DEBUG] startEventById: ПОЛУЧЕНА КОМАНДА ЗАПУСТИТЬ СОБЫТИЕ: ${eventId}`);
+    const eventToRun = gameEvents.find(e => e.id === eventId);
+    if (!eventToRun) {
+        console.error(`Попытка запустить несуществующее событие: ${eventId}`);
+        return;
+    }
+
+    if (eventToRun.oneTime && state.completedTasks.includes(eventToRun.id)) {
+        console.warn(`Попытка повторно запустить одноразовое событие: ${eventId}`);
+        return;
+    }
+
+    state.gameState = 'event';
+    if (eventToRun.oneTime) {
+        state.completedTasks.push(eventToRun.id);
+    }
+    console.log("Принудительный запуск события:", eventToRun.id);
+    renderEvent(eventToRun);
 }

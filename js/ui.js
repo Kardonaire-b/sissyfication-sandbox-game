@@ -11,6 +11,7 @@ import {
     getCurrentOutfitDescription
 } from './descriptions.js';
 import { t } from './i18n.js'; // <-- ИМПОРТ
+import { gameTasks } from './gameData/tasks.js';
 
 // --- Кэши и константы для UI ---
 let fullBodyDescriptionForModalStore = "";
@@ -390,6 +391,7 @@ export function updateStats() {
     updateProgressDisplay();
     updateTabsVisibility();
     updateBody();
+    renderActiveTask();
     renderCurrentTabContent();
 }
 
@@ -434,7 +436,11 @@ export function renderEvent(eventData, sceneId = 'intro') {
     scene.dialogue.forEach(line => {
         const p = document.createElement('p');
         const speakerName = (line.speaker === 'stepmom') ? C.STEPMOM_NAME : state.playerName;
-        const text = t(line.text_key, { playerName: state.playerName });
+
+        // Выбираем ключ текста, если это функция
+        const textKey = typeof line.text_key === 'function' ? line.text_key(state) : line.text_key;
+
+        const text = t(textKey, { playerName: state.playerName });
         p.innerHTML = `<strong class="speaker-${line.speaker}">${speakerName}:</strong> <em>"${text}"</em>`;
         dialogueDiv.appendChild(p);
     });
@@ -468,4 +474,17 @@ function endEvent() {
     state.gameState = 'normal';
     console.log("Событие завершено.");
     updateStats(); // Полностью перерисовываем интерфейс в нормальное состояние
+}
+
+function renderActiveTask() {
+    if (state.activeTaskId) {
+        const task = gameTasks[state.activeTaskId];
+        if (task) {
+            el.taskTitle.textContent = t(task.title_key);
+            el.taskDescription.textContent = t(task.description_key);
+            el.taskContainer.style.display = 'block';
+        }
+    } else {
+        el.taskContainer.style.display = 'none';
+    }
 }
