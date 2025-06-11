@@ -1,5 +1,5 @@
 import { state } from '../state.js';
-import { log } from '../ui.js';
+import { log } from '../ui/log.js';
 import { t } from '../i18n.js';
 import { eventBus } from '../eventBus.js';
 

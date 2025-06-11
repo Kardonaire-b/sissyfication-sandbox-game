@@ -3,14 +3,32 @@ import { state } from './state.js';
 import { el } from './domUtils.js';
 import { state as initialState } from './state.js';
 import { nextDay } from './gameLogic.js';
-import { log, updateStats, updateTabsVisibility, updateProgressDisplay, renderChoices, renderWardrobeUI, renderLog, openBodyDetailsModal, closeBodyDetailsModal } from './ui.js';
+import { 
+    updateStats, 
+    updateTabsVisibility, 
+    updateProgressDisplay, 
+    renderChoices, 
+    renderWardrobeUI, 
+    openBodyDetailsModal, 
+    closeBodyDetailsModal,
+    DOM_CACHE,
+    initDOMCache
+} from './ui.js';
 import { saveGame, loadGame } from './saveLoad.js';
 import * as C from './config.js';
 import { t } from './i18n.js';
+import './taskManager.js';
+import './storyEvents.js';
+import { log, renderLog } from './ui/log.js';
 
 function proceedToGame() {
-    state.playerName = el.playerNameInput.value.trim() || state.playerName;
-    state.playerSurname = el.playerSurnameInput.value.trim() || state.playerSurname;
+    if (!DOM_CACHE.playerNameInput || !DOM_CACHE.playerSurnameInput) {
+        console.error('Не найдены поля ввода имени и фамилии');
+        return;
+    }
+
+    state.playerName = DOM_CACHE.playerNameInput.value.trim() || state.playerName;
+    state.playerSurname = DOM_CACHE.playerSurnameInput.value.trim() || state.playerSurname;
     state.introCompleted = true;
 
     // Сохраняем выбранный тип телосложения
@@ -55,18 +73,26 @@ function proceedToGame() {
 }
 
 function showIntro() {
-    el.introScreen.style.display = 'flex';
-    el.gameContainer.style.display = 'none';
+    // Инициализируем DOM-элементы перед использованием
+    initDOMCache();
+
+    if (!DOM_CACHE.introScreen || !DOM_CACHE.gameContainer) {
+        console.error('Критические элементы интерфейса не найдены');
+        return;
+    }
+
+    DOM_CACHE.introScreen.style.display = 'flex';
+    DOM_CACHE.gameContainer.style.display = 'none';
     
-    // Устанавливаем значения в поля ввода из state (на случай, если они были загружены, но интро не было завершено)
-    if (el.playerNameInput) el.playerNameInput.value = state.playerName;
-    if (el.playerSurnameInput) el.playerSurnameInput.value = state.playerSurname;
-    if (el.bodyTypeSelect) el.bodyTypeSelect.value = state.playerBodyType;
+    // Устанавливаем значения в поля ввода из state
+    if (DOM_CACHE.playerNameInput) DOM_CACHE.playerNameInput.value = state.playerName;
+    if (DOM_CACHE.playerSurnameInput) DOM_CACHE.playerSurnameInput.value = state.playerSurname;
+    if (DOM_CACHE.bodyTypeSelect) DOM_CACHE.bodyTypeSelect.value = state.playerBodyType;
     
-    if (el.beginJourneyButton) {
-        const newButton = el.beginJourneyButton.cloneNode(true);
-        el.beginJourneyButton.parentNode.replaceChild(newButton, el.beginJourneyButton);
-        el.beginJourneyButton = newButton; 
+    if (DOM_CACHE.beginJourneyButton) {
+        const newButton = DOM_CACHE.beginJourneyButton.cloneNode(true);
+        DOM_CACHE.beginJourneyButton.parentNode.replaceChild(newButton, DOM_CACHE.beginJourneyButton);
+        DOM_CACHE.beginJourneyButton = newButton; 
         newButton.addEventListener('click', proceedToGame);
     } else {
         console.error("Кнопка 'beginJourneyButton' не найдена в DOM.");
@@ -172,6 +198,9 @@ function applyLocale() {
 
 // --- Логика запуска игры ---
 document.addEventListener('DOMContentLoaded', () => {
+    // Инициализируем DOM-элементы
+    initDOMCache();
+
     // СНАЧАЛА применяем локаль, чтобы весь текст был на месте
     try {
         applyLocale();
@@ -187,20 +216,12 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error("Ошибка при вызове loadGame():", e);
     }
 
+    // Показываем интро или игру в зависимости от состояния
     if (loadedSuccessfully && state.introCompleted) {
-        if (el.introScreen) el.introScreen.style.display = 'none';
-        if (el.gameContainer) el.gameContainer.style.display = 'block';
+        DOM_CACHE.introScreen.style.display = 'none';
+        DOM_CACHE.gameContainer.style.display = 'block';
         initializeGame();
     } else {
-        // Если нет сохранения, или в сохранении intro не завершено, или загрузка не удалась
-        // Сбрасываем introCompleted в false, чтобы гарантированно показать интро
-        state.introCompleted = false; 
-        // Инициализируем значения полей из state, на случай если это не первый запуск
-        // но интро еще не пройдено (например, после сброса игры)
-        if (el.playerNameInput && state.playerName) el.playerNameInput.value = state.playerName;
-        if (el.playerSurnameInput && state.playerSurname) el.playerSurnameInput.value = state.playerSurname;
-        if (el.bodyTypeSelect && state.playerBodyType) el.bodyTypeSelect.value = state.playerBodyType;
-
         showIntro();
     }
 });

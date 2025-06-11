@@ -1,7 +1,7 @@
 import { state } from './state.js';
 import * as C from './config.js';
 import { saveGame, loadGame, SAVEGAME_KEY } from './saveLoad.js';
-import { log } from './ui.js';
+import { log } from './ui/log.js';
 import { executeAction } from './actionExecutor.js';
 import { t } from './i18n.js';
 

@@ -3,8 +3,8 @@ const listeners = {};
 export const eventBus = {
     /**
      * Подписаться на событие.
-     * @param {string} eventName Имя события.
-     * @param {function} callback Функция-обработчик.
+     * @param {string} eventName 
+     * @param {function} callback
      */
     on(eventName, callback) {
         if (!listeners[eventName]) {

@@ -1,6 +1,7 @@
 import { state } from './state.js';
 import * as C from './config.js';
-import { log, updateStats, renderEvent } from './ui.js'; // renderEvent добавлен
+import { log } from './ui/log.js';
+import { updateStats, renderEvent } from './ui.js'; // renderEvent добавлен
 import { gameEvents } from './gameData/events.js';
 import { gameTasks } from './gameData/tasks.js'; // <-- ИМПОРТ ЗАДАНИЙ
 import { t } from './i18n.js'; // <-- ИМПОРТ ПЕРЕВОДЧИКА

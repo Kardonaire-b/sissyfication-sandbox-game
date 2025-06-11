@@ -1,6 +1,6 @@
 // saveLoad.js
 import { state } from './state.js';
-import { log } from './ui.js';
+import { log } from './ui/log.js';
 import { t } from './i18n.js'; // <-- ИМПОРТ
 
 export const SAVEGAME_KEY = 'sissySandboxSave_v1.0';

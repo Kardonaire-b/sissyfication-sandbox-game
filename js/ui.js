@@ -12,21 +12,13 @@ import {
 } from './descriptions.js';
 import { t } from './i18n.js'; // <-- ИМПОРТ
 import { gameTasks } from './gameData/tasks.js';
+import { LOG_CLASS_MAP, log, renderLog } from './ui/log.js';
+
+let updateStatsTimeout = null;
 
 // --- Кэши и константы для UI ---
 let fullBodyDescriptionForModalStore = "";
 const choiceButtonCache = {};
-
-const LOG_CLASS_MAP = new Map([
-    ['default', 'log-default'],
-    ['money-gain', 'log-money-gain'],
-    ['money-loss', 'log-money-loss'],
-    ['hormone-change', 'log-hormone-change'],
-    ['progress-change', 'log-progress-change'],
-    ['discovery', 'log-discovery'],
-    ['important', 'log-important'],
-    ['stepmom-dialogue', 'log-stepmom-dialogue'],
-]);
 
 const ACTION_ICON_MAP = {
     'work': '💼 ',
@@ -40,78 +32,191 @@ const ACTION_ICON_MAP = {
     'reset_game': '🔄 '
 };
 
-// --- Функции Логирования ---
+// Оптимизация: Кэширование DOM-элементов
+export const DOM_CACHE = {
+    logContainer: null,
+    choicesContainer: null,
+    bodyDescContainer: null,
+    taskContainer: null,
+    modalOverlay: null,
+    modalBodyDetailsContent: null,
+    // Добавляем элементы для главного меню
+    introScreen: null,
+    gameContainer: null,
+    playerNameInput: null,
+    playerSurnameInput: null,
+    bodyTypeSelect: null,
+    beginJourneyButton: null
+};
 
-export function log(msg, type = 'default') {
-    state.logMessages.unshift({
-        text: msg,
-        type: type,
-        timestamp: state.day
-    });
+// Оптимизация: Улучшенная работа с модальными окнами
+const MODAL_STATE = {
+    isOpen: false,
+    currentEvent: null
+};
 
-    if (state.logMessages.length > state.maxLogMessages) {
-        state.logMessages.length = state.maxLogMessages;
+// Оптимизация: Кэширование для задач
+const TASK_CACHE = {
+    currentTask: null,
+    lastUpdate: 0
+};
+
+// Оптимизация: Улучшенный рендеринг задач
+function renderActiveTask() {
+    if (!DOM_CACHE.taskContainer) {
+        initDOMCache();
     }
 
-    renderLog();
-}
-
-export function renderLog() {
-    const fragment = document.createDocumentFragment();
-    const ul = document.createElement('ul');
-    ul.style.listStyleType = 'none';
-    ul.style.padding = '0';
-    ul.style.margin = '0';
-
-    if (state.logMessages.length === 0) {
-        el.actionLogOutput.textContent = t('ui.log_cleared');
-        el.actionLogOutput.className = 'log-default';
+    const now = Date.now();
+    // Обновляем кэш только если прошло больше 100мс с последнего обновления
+    if (now - TASK_CACHE.lastUpdate < 100 && TASK_CACHE.currentTask === state.activeTaskId) {
         return;
     }
 
-    state.logMessages.forEach((entry, index) => {
-        const li = document.createElement('li');
-        li.textContent = t('ui.log_entry', { day: entry.timestamp, text: entry.text });
-        li.className = `log-entry ${LOG_CLASS_MAP.get(entry.type) || LOG_CLASS_MAP.get('default')}`;
-        
-        if (index === 0) {
-            li.classList.add('log-updated');
-        }
-        ul.appendChild(li);
-    });
+    TASK_CACHE.lastUpdate = now;
+    TASK_CACHE.currentTask = state.activeTaskId;
 
-    fragment.appendChild(ul);
-    el.actionLogOutput.innerHTML = '';
-    el.actionLogOutput.appendChild(fragment);
-
-    const latestEntry = state.logMessages[0];
-    if (latestEntry) {
-        el.actionLogOutput.className = `log-container ${LOG_CLASS_MAP.get(latestEntry.type) || LOG_CLASS_MAP.get('default')}`;
+    if (!state.activeTaskId) {
+        DOM_CACHE.taskContainer.style.display = 'none';
+        return;
     }
+
+    const task = gameTasks[state.activeTaskId];
+    if (!task) {
+        DOM_CACHE.taskContainer.style.display = 'none';
+        return;
+    }
+
+    // Оптимизация: Используем DocumentFragment для обновления
+    const fragment = document.createDocumentFragment();
+    
+    const titleElement = document.createElement('div');
+    titleElement.className = 'task-title';
+    titleElement.textContent = t(task.title_key);
+    fragment.appendChild(titleElement);
+
+    const descriptionElement = document.createElement('div');
+    descriptionElement.className = 'task-description';
+    descriptionElement.textContent = t(task.description_key);
+    fragment.appendChild(descriptionElement);
+
+    // Очищаем и обновляем за один раз
+    DOM_CACHE.taskContainer.innerHTML = '';
+    DOM_CACHE.taskContainer.appendChild(fragment);
+    DOM_CACHE.taskContainer.style.display = 'block';
 }
 
-// --- Функции Обновления UI ---
+// Оптимизация: Улучшенная работа с состоянием
+const STATE_UPDATE_QUEUE = [];
+let isStateUpdating = false;
+
+function processStateUpdateQueue() {
+    if (isStateUpdating || STATE_UPDATE_QUEUE.length === 0) return;
+
+    isStateUpdating = true;
+    const updates = STATE_UPDATE_QUEUE.splice(0, STATE_UPDATE_QUEUE.length);
+
+    requestAnimationFrame(() => {
+        updates.forEach(update => {
+            try {
+                update();
+            } catch (error) {
+                console.error('Ошибка при обновлении состояния:', error);
+            }
+        });
+        isStateUpdating = false;
+
+        if (STATE_UPDATE_QUEUE.length > 0) {
+            processStateUpdateQueue();
+        }
+    });
+}
+
+export function queueStateUpdate(updateFunction) {
+    STATE_UPDATE_QUEUE.push(updateFunction);
+    processStateUpdateQueue();
+}
+
+// Оптимизация: Улучшенная работа с вкладками
+const TAB_CACHE = {
+    currentTab: null,
+    tabElements: new Map()
+};
 
 export function updateTabsVisibility() {
     if (!Array.isArray(el.tabs)) return;
 
-    // НОВОЕ УСЛОВИЕ
     const isHormoneTabVisible = state.plotFlags.hormone_therapy_unlocked;
+    
+    // Инициализация кэша вкладок при первом вызове
+    if (TAB_CACHE.tabElements.size === 0) {
+        el.tabs.forEach(btn => {
+            if (btn && btn.dataset && btn.dataset.tab) {
+                TAB_CACHE.tabElements.set(btn.dataset.tab, btn);
+            }
+        });
+    }
 
-    const hormoneTab = el.tabs.find(btn => btn.dataset.tab === 'hormone');
+    const hormoneTab = TAB_CACHE.tabElements.get('hormone');
     if (hormoneTab) {
         hormoneTab.style.display = isHormoneTabVisible ? '' : 'none';
     }
 
     if (!isHormoneTabVisible && state.tab === 'hormone') {
         state.tab = 'income';
-        renderCurrentTabContent(); // Принудительно перерисовываем, т.к. вкладка сменилась
+        queueStateUpdate(() => renderCurrentTabContent());
     }
 
-    el.tabs.forEach(btn => {
-        btn.classList.toggle('selected', btn.dataset.tab === state.tab);
-    });
+    // Обновляем только если вкладка изменилась
+    if (TAB_CACHE.currentTab !== state.tab) {
+        TAB_CACHE.currentTab = state.tab;
+        el.tabs.forEach(btn => {
+            if (btn && btn.dataset && btn.dataset.tab) {
+                btn.classList.toggle('selected', btn.dataset.tab === state.tab);
+            }
+        });
+    }
 }
+
+// Инициализация кэша DOM-элементов
+export function initDOMCache() {
+    console.log('Инициализация DOM-кэша...');
+    
+    // Основные элементы игры
+    DOM_CACHE.logContainer = el.actionLogOutput;
+    DOM_CACHE.choicesContainer = el.choices;
+    DOM_CACHE.bodyDescContainer = el.bodyDesc;
+    DOM_CACHE.taskContainer = el.taskContainer;
+    DOM_CACHE.modalOverlay = el.modalOverlay;
+    DOM_CACHE.modalBodyDetailsContent = el.modalBodyDetailsContent;
+
+    // Элементы главного меню
+    DOM_CACHE.introScreen = el.introScreen;
+    DOM_CACHE.gameContainer = el.gameContainer;
+    DOM_CACHE.playerNameInput = el.playerNameInput;
+    DOM_CACHE.playerSurnameInput = el.playerSurnameInput;
+    DOM_CACHE.bodyTypeSelect = el.bodyTypeSelect;
+    DOM_CACHE.beginJourneyButton = el.beginJourneyButton;
+
+    // Проверяем наличие критических элементов
+    const criticalElements = [
+        'introScreen',
+        'gameContainer',
+        'playerNameInput',
+        'playerSurnameInput',
+        'bodyTypeSelect',
+        'beginJourneyButton'
+    ];
+
+    const missingElements = criticalElements.filter(element => !DOM_CACHE[element]);
+    if (missingElements.length > 0) {
+        console.error('Отсутствуют критические элементы:', missingElements);
+    } else {
+        console.log('DOM-кэш успешно инициализирован');
+    }
+}
+
+// --- Функции Обновления UI ---
 
 export function updateProgressDisplay() {
     // УПРОЩЕННАЯ ЛОГИКА
@@ -243,25 +348,34 @@ function renderCurrentTabContent() {
 }
 
 export function renderWardrobeUI() {
-    const fragment = document.createDocumentFragment();
+    if (!DOM_CACHE.choicesContainer) {
+        initDOMCache();
+    }
 
-    const equippedSection = createWardrobeSection('Сейчас надето:', state.currentOutfit, 'unequip');
-    const currentlyWornItemIds = Object.values(state.currentOutfit).filter(id => id !== null);
-    const availableItems = state.ownedClothes.filter(itemId => !currentlyWornItemIds.includes(itemId));
+    const fragment = document.createDocumentFragment();
+    const currentlyWornItemIds = new Set(Object.values(state.currentOutfit).filter(id => id !== null));
     
-    const availableItemsBySlot = {};
-    availableItems.forEach(itemId => {
-        const item = CLOTHING_ITEMS[itemId];
-        if (!availableItemsBySlot[item.slot]) availableItemsBySlot[item.slot] = [];
-        availableItemsBySlot[item.slot].push(itemId);
+    // Оптимизация: Используем Map для быстрого доступа
+    const availableItemsBySlot = new Map();
+    state.ownedClothes.forEach(itemId => {
+        if (!currentlyWornItemIds.has(itemId)) {
+            const item = CLOTHING_ITEMS[itemId];
+            if (!availableItemsBySlot.has(item.slot)) {
+                availableItemsBySlot.set(item.slot, []);
+            }
+            availableItemsBySlot.get(item.slot).push(itemId);
+        }
     });
 
-    const ownedSection = createWardrobeSection('В шкафу:', availableItemsBySlot, 'equip');
+    const equippedSection = createWardrobeSection('Сейчас надето:', state.currentOutfit, 'unequip');
+    const ownedSection = createWardrobeSection('В шкафу:', Object.fromEntries(availableItemsBySlot), 'equip');
     
     fragment.appendChild(equippedSection);
     fragment.appendChild(ownedSection);
-    el.choices.innerHTML = '';
-    el.choices.appendChild(fragment);
+    
+    // Оптимизация: Очищаем и обновляем за один раз
+    DOM_CACHE.choicesContainer.innerHTML = '';
+    DOM_CACHE.choicesContainer.appendChild(fragment);
 }
 
 function createWardrobeSection(title, items, actionType) {
@@ -380,32 +494,56 @@ export function renderChoices() {
 // --- Главная функция обновления и модальные окна ---
 
 export function updateStats() {
-    el.day.textContent = state.day;
-    el.money.textContent = `${state.money}${C.CURRENCY_SYMBOL}`;
-    el.test.textContent = `${state.testosterone.toFixed(0)} / ${C.MAX_HORMONE_LEVEL}`;
-    el.est.textContent = `${state.estrogen.toFixed(0)} / ${C.MAX_HORMONE_LEVEL}`;
+    if (updateStatsTimeout) {
+        clearTimeout(updateStatsTimeout);
+    }
+    
+    updateStatsTimeout = setTimeout(() => {
+        el.day.textContent = state.day;
+        el.money.textContent = `${state.money}${C.CURRENCY_SYMBOL}`;
+        el.test.textContent = `${state.testosterone.toFixed(0)} / ${C.MAX_HORMONE_LEVEL}`;
+        el.est.textContent = `${state.estrogen.toFixed(0)} / ${C.MAX_HORMONE_LEVEL}`;
 
-    el.tbar.style.width = `${(state.testosterone / C.MAX_HORMONE_LEVEL) * 100}%`;
-    el.ebar.style.width = `${(state.estrogen / C.MAX_HORMONE_LEVEL) * 100}%`;
+        el.tbar.style.width = `${(state.testosterone / C.MAX_HORMONE_LEVEL) * 100}%`;
+        el.ebar.style.width = `${(state.estrogen / C.MAX_HORMONE_LEVEL) * 100}%`;
 
-    updateProgressDisplay();
-    updateTabsVisibility();
-    updateBody();
-    renderActiveTask();
-    renderCurrentTabContent();
+        updateProgressDisplay();
+        updateTabsVisibility();
+        updateBody();
+        renderActiveTask();
+        renderCurrentTabContent();
+    }, 16); // ~60fps
 }
 
 export function openBodyDetailsModal() {
-    if (el.modalOverlay && el.modalBodyDetailsContent) {
-        el.modalBodyDetailsContent.innerHTML = fullBodyDescriptionForModalStore.replace(/\n/g, '<br>');
-        el.modalOverlay.classList.add('active');
+    if (!DOM_CACHE.modalOverlay || !DOM_CACHE.modalBodyDetailsContent) {
+        initDOMCache();
     }
+
+    if (MODAL_STATE.isOpen) return;
+
+    DOM_CACHE.modalBodyDetailsContent.innerHTML = fullBodyDescriptionForModalStore.replace(/\n/g, '<br>');
+    DOM_CACHE.modalOverlay.classList.add('active');
+    MODAL_STATE.isOpen = true;
+
+    // Добавляем обработчик для закрытия по клику вне модального окна
+    const closeOnOutsideClick = (e) => {
+        if (e.target === DOM_CACHE.modalOverlay) {
+            closeBodyDetailsModal();
+        }
+    };
+    DOM_CACHE.modalOverlay.addEventListener('click', closeOnOutsideClick);
 }
 
 export function closeBodyDetailsModal() {
-    if (el.modalOverlay) {
-        el.modalOverlay.classList.remove('active');
+    if (!DOM_CACHE.modalOverlay) {
+        initDOMCache();
     }
+
+    if (!MODAL_STATE.isOpen) return;
+
+    DOM_CACHE.modalOverlay.classList.remove('active');
+    MODAL_STATE.isOpen = false;
 }
 
 // --- НОВЫЙ РАЗДЕЛ: ДВИЖОК СОБЫТИЙ ---
@@ -416,6 +554,10 @@ export function closeBodyDetailsModal() {
  * @param {string} [sceneId='intro'] - ID сцены для отображения.
  */
 export function renderEvent(eventData, sceneId = 'intro') {
+    if (!DOM_CACHE.choicesContainer) {
+        initDOMCache();
+    }
+
     const scene = eventData.scenes.find(s => s.id === sceneId);
     if (!scene) {
         console.error(`Сцена с ID ${sceneId} не найдена в событии ${eventData.id}`);
@@ -423,48 +565,57 @@ export function renderEvent(eventData, sceneId = 'intro') {
         return;
     }
 
-    const choicesContainer = el.choices;
-    // Вот здесь очистка, чтобы сцены не накладывались друг на друга.
-    choicesContainer.innerHTML = ''; 
+    MODAL_STATE.currentEvent = eventData;
+    DOM_CACHE.choicesContainer.innerHTML = '';
 
     const eventWrapper = document.createElement('div');
     eventWrapper.className = 'event-display';
 
-    // Рендерим диалог
-    const dialogueDiv = document.createElement('div');
-    dialogueDiv.className = 'event-dialogue';
+    // Оптимизация: Используем DocumentFragment для диалога
+    const dialogueFragment = document.createDocumentFragment();
     scene.dialogue.forEach(line => {
         const p = document.createElement('p');
         const speakerName = (line.speaker === 'stepmom') ? C.STEPMOM_NAME : state.playerName;
-
-        // Выбираем ключ текста, если это функция
         const textKey = typeof line.text_key === 'function' ? line.text_key(state) : line.text_key;
-
         const text = t(textKey, { playerName: state.playerName });
         p.innerHTML = `<strong class="speaker-${line.speaker}">${speakerName}:</strong> <em>"${text}"</em>`;
-        dialogueDiv.appendChild(p);
+        dialogueFragment.appendChild(p);
     });
+
+    const dialogueDiv = document.createElement('div');
+    dialogueDiv.className = 'event-dialogue';
+    dialogueDiv.appendChild(dialogueFragment);
     eventWrapper.appendChild(dialogueDiv);
 
-    const choicesDiv = document.createElement('div');
-    choicesDiv.className = 'event-choices';
+    // Оптимизация: Используем DocumentFragment для кнопок выбора
+    const choicesFragment = document.createDocumentFragment();
     scene.choices.forEach(choice => {
         const button = document.createElement('button');
         button.className = 'choice-button event-choice';
         button.textContent = t(choice.text_key);
-        button.onclick = () => {
-            const result = choice.action(state);
-            if (result.endEvent) {
-                endEvent();
-            } else if (result.nextSceneId) {
-                renderEvent(eventData, result.nextSceneId);
-            }
-        };
-        choicesDiv.appendChild(button);
+        
+        // Оптимизация: Используем замыкание для сохранения контекста
+        button.onclick = (() => {
+            const currentChoice = choice;
+            return () => {
+                const result = currentChoice.action(state);
+                if (result.endEvent) {
+                    endEvent();
+                } else if (result.nextSceneId) {
+                    renderEvent(eventData, result.nextSceneId);
+                }
+            };
+        })();
+        
+        choicesFragment.appendChild(button);
     });
+
+    const choicesDiv = document.createElement('div');
+    choicesDiv.className = 'event-choices';
+    choicesDiv.appendChild(choicesFragment);
     eventWrapper.appendChild(choicesDiv);
     
-    choicesContainer.appendChild(eventWrapper);
+    DOM_CACHE.choicesContainer.appendChild(eventWrapper);
 }
 
 /**
@@ -472,19 +623,23 @@ export function renderEvent(eventData, sceneId = 'intro') {
  */
 function endEvent() {
     state.gameState = 'normal';
+    MODAL_STATE.currentEvent = null;
     console.log("Событие завершено.");
-    updateStats(); // Полностью перерисовываем интерфейс в нормальное состояние
+    
+    // Используем requestAnimationFrame для плавного обновления UI
+    requestAnimationFrame(() => {
+        updateStats();
+    });
 }
 
-function renderActiveTask() {
-    if (state.activeTaskId) {
-        const task = gameTasks[state.activeTaskId];
-        if (task) {
-            el.taskTitle.textContent = t(task.title_key);
-            el.taskDescription.textContent = t(task.description_key);
-            el.taskContainer.style.display = 'block';
-        }
-    } else {
-        el.taskContainer.style.display = 'none';
+// Инициализация при загрузке
+document.addEventListener('DOMContentLoaded', () => {
+    // Инициализируем кэш DOM-элементов
+    initDOMCache();
+    
+    // Проверяем наличие необходимых элементов
+    if (!DOM_CACHE.introScreen || !DOM_CACHE.gameContainer) {
+        console.error('Критические элементы интерфейса не найдены');
+        return;
     }
-}
+});

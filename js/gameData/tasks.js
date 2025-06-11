@@ -1,7 +1,8 @@
 import { state } from '../state.js';
-import { log } from '../ui.js';
+import { log } from '../ui/log.js';
 import { t } from '../i18n.js';
 import { CLOTHING_SLOTS } from '../wardrobeConfig.js';
+
 
 /**
  * Коллекция всех игровых заданий.
@@ -19,8 +20,9 @@ export const gameTasks = {
         title_key: 'tasks.wear_panties.title',
         description_key: 'tasks.wear_panties.description',
         
-        isCompleted: (currentState) => {
-            return currentState.currentOutfit[CLOTHING_SLOTS.UNDERWEAR_BOTTOM] === 'comfy_panties';
+        isCompleted: (s) => {
+            const id = (s.currentOutfit[CLOTHING_SLOTS.UNDERWEAR_BOTTOM] || '').trim();                 // убираем пробелы/CR-LF
+            return id.startsWith('comfy_panties'); // любой вариант comfy_panties*
         },
 
         onComplete: (currentState) => {

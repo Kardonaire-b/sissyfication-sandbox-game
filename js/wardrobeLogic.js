@@ -2,6 +2,7 @@ import { state } from './state.js';
 import { CLOTHING_ITEMS, CLOTHING_SLOTS } from './wardrobeConfig.js';
 import { updateStats } from './ui.js';
 import { eventBus } from './eventBus.js';
+import { log } from './ui/log.js';
 
 /**
  * Внутренняя функция для снятия предмета без вызова обновлений.
@@ -28,6 +29,13 @@ export function equipItem(itemId) {
 
     const currentOutfit = state.currentOutfit;
     const slotToOccupy = itemToEquip.slot;
+
+    eventBus.dispatch('actionCompleted');
+    console.debug('[Wardrobe] DISPATCH actionCompleted', {
+    equipped: itemId,
+    slot: slotToOccupy,
+    outfitNow: { ...state.currentOutfit }
+    });
 
     // Логика конфликтов слотов
     if (slotToOccupy === CLOTHING_SLOTS.FULL_BODY) {

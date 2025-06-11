@@ -1,7 +1,7 @@
 import { state } from './state.js';
 import * as C from './config.js';
 import { nextDay } from './gameLogic.js'; // <-- ИЗМЕНЕНИЕ: checkHormoneUnlock удалён
-import { log } from './ui.js';
+import { log } from './ui/log.js';
 import { actions } from './actions.js';
 import { t } from './i18n.js';
 
