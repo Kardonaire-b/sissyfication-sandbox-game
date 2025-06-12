@@ -105,20 +105,18 @@ function processStateUpdateQueue() {
 
     isStateUpdating = true;
     const updates = STATE_UPDATE_QUEUE.splice(0, STATE_UPDATE_QUEUE.length);
-
-        updates.forEach(update => {
-            try {
-                update();
-            } catch (error) {
-                console.error('Ошибка при обновлении состояния:', error);
-            }
-        });
-        isStateUpdating = false;
-
-        if (STATE_UPDATE_QUEUE.length > 0) {
-            processStateUpdateQueue();
+    updates.forEach(update => {
+        try {
+            update();
+        } catch (error) {
+            console.error('Ошибка при обновлении состояния:', error);
         }
     });
+    isStateUpdating = false;
+
+    if (STATE_UPDATE_QUEUE.length > 0) {
+        processStateUpdateQueue();
+    }
 }
 
 export function queueStateUpdate(updateFunction) {
@@ -573,9 +571,7 @@ function endEvent() {
     state.gameState = 'normal';
     MODAL_STATE.currentEvent = null;
     console.log("Событие завершено.");
-    
-        updateStats();
-    });
+    updateStats();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
