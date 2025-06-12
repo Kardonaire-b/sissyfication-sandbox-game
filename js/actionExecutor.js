@@ -53,6 +53,7 @@ export function executeAction(actionId) {
             log(t('log.e_pill_success'), 'hormone-change');
             break;
 
+        case 'read_book':
             state.progress = Math.min(C.MAX_PROGRESS, state.progress + C.BOOK_PROGRESS_GAIN);
             log(t('log.read_book_progress', { gain: C.BOOK_PROGRESS_GAIN }), 'progress-change');
             nextDay();

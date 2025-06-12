@@ -62,6 +62,7 @@ export function nextDay() {
     state.emaE = C.EMA_ALPHA * state.estrogen + (1 - C.EMA_ALPHA) * state.emaE;
 
     updateStats();
+    eventBus.dispatch('nextDay');
 }
 
 

@@ -30,8 +30,7 @@ function proceedToGame() {
     state.playerSurname = DOM_CACHE.playerSurnameInput.value.trim() || state.playerSurname;
     state.introCompleted = true;
 
-    state.playerBodyType = el.bodyTypeSelect.value; 
-    state.introCompleted = true;
+    state.playerBodyType = el.bodyTypeSelect.value;
 
     
     let baseT = initialState.testosterone; 
