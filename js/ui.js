@@ -347,6 +347,7 @@ function createWardrobeSection(title, items, actionType) {
     const section = document.createElement('div');
     section.className = 'wardrobe-section';
     const h3 = document.createElement('h3');
+    h3.textContent = title;
     section.appendChild(h3);
 
     let hasItems = false;
@@ -362,14 +363,16 @@ function createWardrobeSection(title, items, actionType) {
             itemDiv.className = 'wardrobe-item-display';
 
             const itemNameSpan = document.createElement('span');
-            const slotKeyName = Object.keys(CLOTHING_SLOTS).find(key => CLOTHING_SLOTS[key] === item.slot);
+            itemNameSpan.textContent = item.name;
             itemDiv.appendChild(itemNameSpan);
 
             const button = document.createElement('button');
             button.className = 'choice-button wardrobe-button';
             if (actionType === 'equip') {
+                button.textContent = 'Надеть';
                 button.onclick = () => equipItem(itemId);
             } else {
+                button.textContent = 'Снять';
                 button.onclick = () => unequipItem(item.slot);
             }
             itemDiv.appendChild(button);
