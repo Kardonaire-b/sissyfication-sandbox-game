@@ -1,4 +1,3 @@
-
 body {
   background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
   color: #eee;
@@ -18,7 +17,12 @@ body {
 }
 
 .log-entry {
-    padding: 2px 0; 
+    padding: 4px 6px;
+    margin-bottom: 3px;
+    border-left: 4px solid transparent;
+    background: #2f2f31;
+    border-radius: 4px;
+    transition: background 0.2s, transform 0.15s;
     font-size: 0.9em;
     opacity: 0.85; 
 }
@@ -28,15 +32,17 @@ body {
 }
 .log-entry.log-money-gain {
   color: #a1ffb6;
-  
+  border-color: #3cb371;
 }
 .log-entry.log-important {
   font-weight: bold;
   color: #ffc869;
+  border-color: #ffae42;
 }
 .log-entry.log-stepmom-dialogue {
   color: #fca3ff;
   font-style: italic;
+  border-color: #ff8af2;
 }
 
 @keyframes fadeInLogEntry {
@@ -681,5 +687,99 @@ body {
   .input-group label {
     margin-bottom: 5px;
     min-width: auto;
+  }
+}
+
+/* === LOG IMPROVEMENTS === */
+.log-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-start;
+  margin-bottom: 10px;
+}
+
+.log-filter-btn,
+.log-clear-btn {
+  background: #3a3a3c;
+  border: 1px solid #555;
+  color: #cfcfcf;
+  font-size: 0.85rem;
+  padding: 6px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.log-filter-btn .emoji,
+.log-filter-btn .txt {
+  pointer-events: none;
+}
+
+.log-filter-btn.selected {
+  background: #0090e0;
+  border-color: #00aeff;
+  color: #fff;
+}
+
+.log-filter-btn:not(.selected) .emoji {
+  opacity: 0.7;
+}
+
+.log-filter-btn:hover:not(.selected),
+.log-clear-btn:hover {
+  background: #4e4e52;
+  border-color: #777;
+}
+
+.log-clear-btn {
+  margin-left: auto;
+  background: #5a2c2c;
+  border-color: #7a3c3c;
+}
+
+.log-clear-btn:hover {
+  background: #762c2c;
+  border-color: #9a3c3c;
+}
+
+.log-icon {
+  margin-right: 4px;
+}
+
+.log-list {
+  max-height: 180px;
+  overflow-y: auto;
+  text-align: left;
+  padding-right: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: #555 #2d2d2f;
+}
+
+/* Кастомный скроллбар для WebKit */
+.log-list::-webkit-scrollbar {
+  width: 6px;
+}
+.log-list::-webkit-scrollbar-track {
+  background: #2d2d2f;
+}
+.log-list::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 3px;
+}
+
+.log-placeholder {
+  text-align: center;
+  color: #888;
+  font-style: italic;
+}
+
+@media (max-width: 520px) {
+  .log-filter-btn .txt {
+    display: none;
   }
 }

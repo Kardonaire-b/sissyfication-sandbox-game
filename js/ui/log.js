@@ -55,9 +55,13 @@ function ensureControls() {
 
     // Кнопки отдельных типов
     Object.keys(LOG_TYPE_META).forEach(typeId => {
+        const meta = LOG_TYPE_META[typeId];
         const btn = document.createElement('button');
-        btn.textContent = LOG_TYPE_META[typeId].icon + ' ' + LOG_TYPE_META[typeId].label;
         btn.className = 'log-filter-btn';
+        btn.title = meta.label;
+
+        btn.innerHTML = `<span class="emoji">${meta.icon}</span><span class="txt">${meta.label}</span>`;
+
         btn.onclick = () => { setFilter(typeId, btn); };
         controlsDiv.appendChild(btn);
     });

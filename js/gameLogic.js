@@ -94,11 +94,12 @@ function checkActiveTaskCompletion() {
         console.log(`[DEBUG] checkActiveTaskCompletion: Задание найдено. Проверка условия isCompleted... Результат: ${task.isCompleted(state)}`);
     }
 
-    if (task && task.isCompleted(state)) {
+    if (task && task.isCompleted(state) && !task._done) {
         console.log(`Задание ${task.id} выполнено!`);
         
         const result = task.onComplete(state);
         
+        task._done = true;
         state.completedTasks.push(state.activeTaskId);
         state.activeTaskId = null;
         
