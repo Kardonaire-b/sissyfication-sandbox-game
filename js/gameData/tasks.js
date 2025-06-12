@@ -21,8 +21,8 @@ export const gameTasks = {
         description_key: 'tasks.wear_panties.description',
         
         isCompleted: (s) => {
-            const id = (s.currentOutfit[CLOTHING_SLOTS.UNDERWEAR_BOTTOM] || '').trim();                 // убираем пробелы/CR-LF
-            return id.startsWith('comfy_panties'); // любой вариант comfy_panties*
+            const id = (s.currentOutfit[CLOTHING_SLOTS.UNDERWEAR_BOTTOM] || '').trim();
+            return id.startsWith('comfy_panties');
         },
 
         onComplete: (currentState) => {
@@ -32,6 +32,5 @@ export const gameTasks = {
             return { nextEventId: 'stepmom_praise_for_panties' };
         }
         
-        // Поле onFail полностью удалено для этого задания
     }
 };

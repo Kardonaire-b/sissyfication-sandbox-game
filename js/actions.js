@@ -8,7 +8,6 @@ import { t } from './i18n.js';
 export const actions = [
    {
         id: 'work',
-        // Теперь возвращаем просто ключ
         textKey: 'actions.work.text',
         cost: 0,
         tab: 'income',
@@ -19,8 +18,6 @@ export const actions = [
         textKey: 'actions.t_blocker.text',
         cost: C.T_BLOCKER_COST,
         tab: 'hormone',
-        // НОВОЕ УСЛОВИЕ
-        condition: () => state.plotFlags.hormone_therapy_unlocked && state.t_blocker_active_days === 0,
         handler: () => executeAction('t_blocker')
     },
     {
@@ -41,14 +38,14 @@ export const actions = [
     },
     {
         id: 'read_book',
-        textKey: 'actions.read_book.progress', // Всегда один ключ
+        textKey: 'actions.read_book.progress',
         cost: 0,
         tab: 'other',
         handler: () => executeAction('read_book')
     },
     {
         id: 'browse_internet',
-        textKey: 'actions.browse_internet.progress', // Всегда один ключ
+        textKey: 'actions.browse_internet.progress',
         cost: 0,
         tab: 'other',
         handler: () => executeAction('browse_internet')

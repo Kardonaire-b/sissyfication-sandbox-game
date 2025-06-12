@@ -1,7 +1,6 @@
-// saveLoad.js
 import { state } from './state.js';
 import { log } from './ui/log.js';
-import { t } from './i18n.js'; // <-- ИМПОРТ
+import { t } from './i18n.js';
 
 export const SAVEGAME_KEY = 'sissySandboxSave_v1.0';
 
@@ -28,15 +27,12 @@ export function loadGame() {
         if (savedData) {
             const loadedStateObject = JSON.parse(savedData);
 
-            // Аккуратно обновляем существующий объект state, а не заменяем его
             for (const key in loadedStateObject) {
                 if (Object.prototype.hasOwnProperty.call(loadedStateObject, key)) {
                     state[key] = loadedStateObject[key];
                 }
             }
 
-            // --- ОБЕСПЕЧЕНИЕ СОВМЕСТИМОСТИ СТАРЫХ СОХРАНЕНИЙ ---
-            // Добавляем новые поля с дефолтными значениями, если их нет в сохранении
             if (typeof state.introCompleted === 'undefined') state.introCompleted = true;
             if (typeof state.playerName === 'undefined') state.playerName = "Райан";
             if (typeof state.playerSurname === 'undefined') state.playerSurname = "Коллстон";
@@ -44,23 +40,21 @@ export function loadGame() {
             if (typeof state.stepMotherInfluence === 'undefined') state.stepMotherInfluence = 0;
             if (typeof state.maxLogMessages === 'undefined') state.maxLogMessages = 7;
             if (!Array.isArray(state.logMessages)) state.logMessages = [];
-            // Новые поля из Этапа 2
             if (typeof state.obedience === 'undefined') state.obedience = 0;
             if (typeof state.rebellion === 'undefined') state.rebellion = 0;
             if (typeof state.activeTaskId === 'undefined') state.activeTaskId = null;
             if (!Array.isArray(state.completedTasks)) state.completedTasks = [];
             if (typeof state.skills === 'undefined') state.skills = {};
             if (typeof state.gameState === 'undefined') state.gameState = 'normal';
-            // --------------------------------------------------------
 
             log(t('log.load_success'), 'important');
-            return true; // Успешная загрузка
+            return true;
         } else {
-            return false; // Нет сохранения
+            return false;
         }
     } catch (error) {
         console.error("Ошибка при загрузке игры:", error);
         log(t('log.load_error'), 'money-loss');
-        return false; // Ошибка загрузки
+        return false;
     }
 }
