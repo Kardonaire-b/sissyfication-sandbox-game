@@ -19,7 +19,6 @@ export function openBodyDetailsModal() {
     el.modalBodyDetailsContent.innerHTML = window.fullBodyDescriptionForModalStore?.replace(/\n/g, '<br>') || '';
     el.modalOverlay.classList.add('active');
     MODAL_STATE.isOpen = true;
-    // Добавляем обработчик для закрытия по клику вне модального окна
     const closeOnOutsideClick = (e) => {
         if (e.target === el.modalOverlay) {
             closeBodyDetailsModal();

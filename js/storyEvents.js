@@ -1,4 +1,3 @@
-// storyEvents.js
 import { eventBus } from './eventBus.js';
 import { log } from './ui/log.js';
 import { t }   from './i18n.js';
@@ -7,7 +6,7 @@ import { state } from './state.js';
 const events = {
     stepmom_praise_for_panties: {
         textKey : 'events.stepmom_praise_for_panties.text',
-        effect  : (s) => {                // можно навесить любые эффекты
+        effect  : (s) => {
             s.stepMotherInfluence += 5;
             s.obedience           += 2;
         }
@@ -23,10 +22,7 @@ function handleStartEvent(id) {
         return;
     }
 
-    // 1. Лог в окно действий
     log(t(ev.textKey), 'stepmom-dialogue');
-
-    // 2. Сюжетные последствия
     ev.effect?.(state);
 }
 

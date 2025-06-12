@@ -11,7 +11,6 @@ export function $$(selector) {
     return Array.from(document.querySelectorAll(selector));
 }
 
-// Инициализация DOM-элементов
 console.log('Инициализация DOM-элементов...');
 
 export const el = {
@@ -45,7 +44,6 @@ export const el = {
     modalCloseButton: $('modal-close-button')
 };
 
-// Проверяем наличие критических элементов
 const criticalElements = [
     'introScreen',
     'gameContainer',

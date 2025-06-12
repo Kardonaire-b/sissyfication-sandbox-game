@@ -37,7 +37,6 @@ export function equipItem(itemId) {
     outfitNow: { ...state.currentOutfit }
     });
 
-    // Логика конфликтов слотов
     if (slotToOccupy === CLOTHING_SLOTS.FULL_BODY) {
         if (currentOutfit[CLOTHING_SLOTS.TOP]) unequipItemInternal(CLOTHING_SLOTS.TOP);
         if (currentOutfit[CLOTHING_SLOTS.BOTTOM]) unequipItemInternal(CLOTHING_SLOTS.BOTTOM);
@@ -47,18 +46,13 @@ export function equipItem(itemId) {
         }
     }
     
-    // Если в слоте уже что-то есть, снимаем это
     if (currentOutfit[slotToOccupy]) {
         unequipItemInternal(slotToOccupy);
     }
 
-    // Надеваем новый предмет
     currentOutfit[slotToOccupy] = itemId;
     
-    // И только теперь, когда все изменения в state.currentOutfit завершены,
-    // вызываем обновление и проверку.
     updateStats();
-    // ИЗМЕНЕНИЕ: Отправляем событие вместо вызова функции
     eventBus.dispatch('actionCompleted');
 }
 
@@ -73,6 +67,5 @@ export function unequipItem(slotToUnequip) {
     unequipItemInternal(slotToUnequip);
 
     updateStats();
-    // ИЗМЕНЕНИЕ: Отправляем событие вместо вызова функции
     eventBus.dispatch('actionCompleted');
 }

@@ -1,10 +1,10 @@
 import { state } from './state.js';
 import * as C from './config.js';
 import { log } from './ui/log.js';
-import { updateStats, renderEvent } from './ui.js'; // renderEvent добавлен
+import { updateStats, renderEvent } from './ui.js';
 import { gameEvents } from './gameData/events.js';
-import { gameTasks } from './gameData/tasks.js'; // <-- ИМПОРТ ЗАДАНИЙ
-import { t } from './i18n.js'; // <-- ИМПОРТ ПЕРЕВОДЧИКА
+import { gameTasks } from './gameData/tasks.js';
+import { t } from './i18n.js';
 import { eventBus } from './eventBus.js';
 
 function checkAndTriggerEvents() {
@@ -33,7 +33,6 @@ export function nextDay() {
         }
     }
 
-    // Сначала обрабатываем логику событий нового дня
     checkAndTriggerEvents();
 
    if (state.gameState !== 'normal') {
@@ -41,12 +40,10 @@ export function nextDay() {
         return;
     }
 
-    // Обычная логика дня (если не было событий)
     if (state.t_blocker_active_days > 0) {
         state.t_blocker_active_days--;
         if (state.t_blocker_active_days === 0) {
             state.natural_t_multiplier = 1.0;
-            // TODO: Перевести в локаль
             log("Действие блокатора тестостерона закончилось.", "hormone-change");
         }
     }
@@ -67,13 +64,11 @@ export function nextDay() {
     updateStats();
 }
 
-// --- НОВЫЙ РАЗДЕЛ: УПРАВЛЕНИЕ ЗАДАНИЯМИ ---
 
 /**
  * Назначает игроку новое активное задание.
  * @param {string} taskId ID задания из gameTasks.
  */
-// --- ИЗМЕНЕНИЕ: assignTask теперь внутренняя функция ---
 function assignTask(taskId) {
     if (gameTasks[taskId]) {
         state.activeTaskId = taskId;

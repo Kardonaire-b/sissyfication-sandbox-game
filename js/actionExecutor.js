@@ -1,6 +1,6 @@
 import { state } from './state.js';
 import * as C from './config.js';
-import { nextDay } from './gameLogic.js'; // <-- ИЗМЕНЕНИЕ: checkHormoneUnlock удалён
+import { nextDay } from './gameLogic.js';
 import { log } from './ui/log.js';
 import { actions } from './actions.js';
 import { t } from './i18n.js';
@@ -53,15 +53,12 @@ export function executeAction(actionId) {
             log(t('log.e_pill_success'), 'hormone-change');
             break;
 
-        case 'read_book':
-            // Теперь это действие просто повышает общий прогресс феминизации
             state.progress = Math.min(C.MAX_PROGRESS, state.progress + C.BOOK_PROGRESS_GAIN);
             log(t('log.read_book_progress', { gain: C.BOOK_PROGRESS_GAIN }), 'progress-change');
             nextDay();
             break;
 
         case 'browse_internet':
-            // Аналогично
             const progressGain = C.INTERNET_PROGRESS_GAIN;
             state.progress = Math.min(C.MAX_PROGRESS, state.progress + progressGain);
             log(t('log.browse_internet_progress', { gain: progressGain }), 'progress-change');
