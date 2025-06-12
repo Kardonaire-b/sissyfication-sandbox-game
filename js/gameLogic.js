@@ -74,6 +74,7 @@ function assignTask(taskId) {
     if (gameTasks[taskId]) {
         state.activeTaskId = taskId;
         console.log(`Назначено новое задание: ${taskId}`);
+        updateStats();
     } else {
         console.error(`Попытка назначить несуществующее задание: ${taskId}`);
     }

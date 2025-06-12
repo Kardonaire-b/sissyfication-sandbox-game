@@ -4,6 +4,7 @@ import { nextDay } from './gameLogic.js';
 import { log } from './ui/log.js';
 import { actions } from './actions.js';
 import { t } from './i18n.js';
+import { eventBus } from './eventBus.js';
 
 /**
  * Централизованно выполняет игровое действие.
@@ -73,4 +74,7 @@ export function executeAction(actionId) {
             log(t('log.rest_success'), 'default');
             break;
     }
+
+    // Уведомляем систему заданий, что действие завершено
+    eventBus.dispatch('actionCompleted');
 }

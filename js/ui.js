@@ -19,6 +19,9 @@ let updateStatsTimeout = null;
 let fullBodyDescriptionForModalStore = "";
 const choiceButtonCache = {};
 
+// Сохраняем обработчик клика по оверлею, чтобы можно было снимать его при закрытии
+let overlayClickHandler = null;
+
 const ACTION_ICON_MAP = {
     'work': '💼 ',
     't_blocker': '💊 ',
@@ -480,12 +483,14 @@ export function openBodyDetailsModal() {
     DOM_CACHE.modalOverlay.classList.add('active');
     MODAL_STATE.isOpen = true;
 
-    const closeOnOutsideClick = (e) => {
-        if (e.target === DOM_CACHE.modalOverlay) {
-            closeBodyDetailsModal();
-        }
-    };
-    DOM_CACHE.modalOverlay.addEventListener('click', closeOnOutsideClick);
+    if (!overlayClickHandler) {
+        overlayClickHandler = (e) => {
+            if (e.target === DOM_CACHE.modalOverlay) {
+                closeBodyDetailsModal();
+            }
+        };
+        DOM_CACHE.modalOverlay.addEventListener('click', overlayClickHandler);
+    }
 }
 
 export function closeBodyDetailsModal() {
@@ -497,6 +502,12 @@ export function closeBodyDetailsModal() {
 
     DOM_CACHE.modalOverlay.classList.remove('active');
     MODAL_STATE.isOpen = false;
+
+    // Убираем слушатель клика по оверлею, чтобы не плодить копии
+    if (overlayClickHandler) {
+        DOM_CACHE.modalOverlay.removeEventListener('click', overlayClickHandler);
+        overlayClickHandler = null;
+    }
 }
 
 

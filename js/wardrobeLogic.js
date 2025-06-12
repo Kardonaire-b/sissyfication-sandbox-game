@@ -30,13 +30,6 @@ export function equipItem(itemId) {
     const currentOutfit = state.currentOutfit;
     const slotToOccupy = itemToEquip.slot;
 
-    eventBus.dispatch('actionCompleted');
-    console.debug('[Wardrobe] DISPATCH actionCompleted', {
-    equipped: itemId,
-    slot: slotToOccupy,
-    outfitNow: { ...state.currentOutfit }
-    });
-
     if (slotToOccupy === CLOTHING_SLOTS.FULL_BODY) {
         if (currentOutfit[CLOTHING_SLOTS.TOP]) unequipItemInternal(CLOTHING_SLOTS.TOP);
         if (currentOutfit[CLOTHING_SLOTS.BOTTOM]) unequipItemInternal(CLOTHING_SLOTS.BOTTOM);

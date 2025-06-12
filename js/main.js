@@ -92,31 +92,36 @@ function initializeGame() {
     updateTabsVisibility();
     updateProgressDisplay();
 
-    el.tabs.forEach(btn => {
-        btn.addEventListener('click', () => {
-            if (btn.dataset.tab === 'hormone' && !state.hormonesUnlocked) return;
-            
-            state.tab = btn.dataset.tab;
-            
-            updateStats();
+    // Навешиваем обработчики только один раз за сессию
+    if (!initializeGame.listenersAdded) {
+        el.tabs.forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (btn.dataset.tab === 'hormone' && !state.hormonesUnlocked) return;
+                
+                state.tab = btn.dataset.tab;
+                
+                updateStats();
+            });
         });
-    });
 
-    if (el.modalCloseButton) {
-        el.modalCloseButton.addEventListener('click', closeBodyDetailsModal);
-    }
-    if (el.modalOverlay) {
-        el.modalOverlay.addEventListener('click', (event) => {
-            if (event.target === el.modalOverlay) {
+        if (el.modalCloseButton) {
+            el.modalCloseButton.addEventListener('click', closeBodyDetailsModal);
+        }
+        if (el.modalOverlay) {
+            el.modalOverlay.addEventListener('click', (event) => {
+                if (event.target === el.modalOverlay) {
+                    closeBodyDetailsModal();
+                }
+            });
+        }
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && el.modalOverlay && el.modalOverlay.classList.contains('active')) {
                 closeBodyDetailsModal();
             }
         });
+
+        initializeGame.listenersAdded = true;
     }
-    document.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape' && el.modalOverlay && el.modalOverlay.classList.contains('active')) {
-            closeBodyDetailsModal();
-        }
-    });
 
     if (state.day === 0) { 
         nextDay(); 

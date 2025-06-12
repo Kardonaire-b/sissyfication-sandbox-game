@@ -27,6 +27,7 @@ export const gameEvents = [
                             }
                             log(t('events.gift1.log_accept'), 'important');
                             
+                            // ИЗМЕНЕНИЕ: Отправляем команду, а не вызываем функцию напрямую
                             eventBus.dispatch('assignTask', 'wear_first_panties');
 
                             return { nextSceneId: 'accepted' };
@@ -61,12 +62,17 @@ export const gameEvents = [
     {
         id: 'stepmom_praise_for_panties',
         oneTime: true,
-        trigger: () => false,
+        trigger: () => false, // Это событие не запускается по времени, только вручную!
         scenes: [
             {
                 id: 'praise',
                 dialogue: [
+                    // Диалог будет зависеть от того, сразу игрок надел трусики или нет
+                    { 
                         speaker: 'stepmom', 
+                        // Используем функцию для выбора нужного ключа текста
+                        text_key: (currentState) => {
+                            return currentState.plotFlags.panty_gift_refused 
                                 ? 'events.praise1.dialogue_delayed' 
                                 : 'events.praise1.dialogue_immediate';
                         }
